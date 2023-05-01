@@ -1,0 +1,67 @@
+
+Markku-Juhani Olavi Saarinen <mjos@iki.fi>
+Attachments7:07 PM (0 minutes ago)
+
+to rfc-editor, Jean-Philippe, Nevil, Kathleen.Moria. 
+Hello,
+
+Please find attached updated "final" draft-saarinen-blake2-06.xml, as
+requested, and the corresponding txt file.
+
+Changes from original I-D draft-saarinen-blake2-06.xml to this version:
+
+- Trimmed extra spaces at the end of line and empty lines from tables (global).
+
+- Appendix A: The internal variable contents are now aligned with the
+right border.
+
+- Appendix A and B: Wording changed from ".. and display internal
+values of computation" to ".. and show internal values during
+computation".
+
+- Appendix E: "This is fairly a exhaustive.." corrected to "This is a
+fairly exhaustive..".
+
+- Affiliation of editor slightly modified (changed my e-mail address
+and web site to official work addresses).
+
+Cheers,
+- markku
+
+Dr. Markku-Juhani O. Saarinen <mjos@iki.fi>
+
+
+
+
+On Tue, Sep 8, 2015 at 9:34 PM,  <rfc-editor@rfc-editor.org> wrote:
+> Author(s),
+>
+> We have received notice that your document draft-saarinen-blake2-06 has
+> been approved for publication as an RFC.  The document has
+> been added to the RFC Editor queue and you can check the status at
+> <http://www.rfc-editor.org/queue2.html#draft-saarinen-blake2>
+>
+> If you submitted your XML file using the I-D submission tool, we have
+> already retrieved it.  If you did not submit the XML file via the I-D
+> submission tool, or if you have an updated version (e.g., updated
+> contact information), please send us the XML file at this time.  Please
+> attach the file as draft-saarinen-blake2-06.xml, and specify
+> any differences between the approved I-D and the document that the XML
+> produces.  We recommend using xml2rfc v2 <http://xml.resource.org/> to create
+> your document.  See the RSE's message about the RFC Editor's transition to
+> xml2rfc v2 here
+> <http://www.rfc-editor.org/pipermail/rfc-interest/2013-December/005835.html>.
+>
+> If you created this document using -ms nroff, please send us the
+> source file.
+>
+> This should help increase the pace with which documents move through
+> the RFC Editor queue.
+>
+> Please let us know if you have any questions.
+>
+> Thank you.
+>
+> The RFC Editor Team
+>
+
