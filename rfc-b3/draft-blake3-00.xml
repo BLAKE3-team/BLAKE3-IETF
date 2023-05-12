@@ -219,7 +219,18 @@ any platform, software or hardware.
 <t> The initial value (IV) of BLAKE3 is the same as SHA-256 IV; see
 <xref target="RFC6234" />.</t> 
 
-<t> TODO: Describe IV</t>
+     <figure>
+        <artwork type='text/ascii-art'>
+          6a09e667
+          bb67ae85
+          3c6ef372
+          a54ff53a
+          510e527f
+          9b05688c
+          1f83d9ab
+          5be0cd19
+        </artwork>
+      </figure>
 
 </section>
 

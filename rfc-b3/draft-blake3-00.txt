@@ -73,12 +73,12 @@ Table of Contents
      2.4.  Initial Value (IV)  . . . . . . . . . . . . . . . . . . .   4
      2.5.  Message Word Permutation  . . . . . . . . . . . . . . . .   4
      2.6.  Compression Function Flags  . . . . . . . . . . . . . . .   4
-   3.  Compression Function  . . . . . . . . . . . . . . . . . . . .   4
-     3.1.  Compression Function Input Values . . . . . . . . . . . .   4
+   3.  Compression Function  . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  Compression Function Input Values . . . . . . . . . . . .   5
      3.2.  Quarter-Round Function G  . . . . . . . . . . . . . . . .   5
-     3.3.  Compression Function Processing . . . . . . . . . . . . .   5
-   4.  Tree Mode of Operation  . . . . . . . . . . . . . . . . . . .   6
-     4.1.  Data padding  . . . . . . . . . . . . . . . . . . . . . .   6
+     3.3.  Compression Function Processing . . . . . . . . . . . . .   6
+   4.  Tree Mode of Operation  . . . . . . . . . . . . . . . . . . .   7
+     4.1.  Data padding  . . . . . . . . . . . . . . . . . . . . . .   7
      4.2.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .   7
      4.3.  Binary Tree Structure . . . . . . . . . . . . . . . . . .   7
    5.  Applications  . . . . . . . . . . . . . . . . . . . . . . . .   7
@@ -196,7 +196,14 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
    The initial value (IV) of BLAKE3 is the same as SHA-256 IV; see
    [RFC6234].
 
-   TODO: Describe IV
+             6a09e667
+             bb67ae85
+             3c6ef372
+             a54ff53a
+             510e527f
+             9b05688c
+             1f83d9ab
+             5be0cd19
 
 2.5.  Message Word Permutation
 
@@ -209,6 +216,16 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 
    Describe flags as a table
 
+
+
+
+
+
+Aumasson, et al.         Expires 6 January 2024                 [Page 4]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
+
+
 3.  Compression Function
 
    NOTE: Same as B2s
@@ -218,13 +235,6 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
    TODO: adapt to B3, add G rotations,
 
    These variables are used in the algorithm description.
-
-
-
-Aumasson, et al.         Expires 6 January 2024                 [Page 4]
-
-Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
-
 
    h[0..7]  The hash chaining value, 8 words of 32 bits.
 
@@ -264,16 +274,6 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
        |
        END FUNCTION.
 
-3.3.  Compression Function Processing
-
-   BLAKE3's compression function returns a new state vector, given
-   arguments in XREF.  BLAKE3 does 8 rounds, numbered 0 to 7.
-
-   TODO: adapt pseudocode
-
-
-
-
 
 
 
@@ -281,6 +281,13 @@ Aumasson, et al.         Expires 6 January 2024                 [Page 5]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 
+
+3.3.  Compression Function Processing
+
+   BLAKE3's compression function returns a new state vector, given
+   arguments in XREF.  BLAKE3 does 8 rounds, numbered 0 to 7.
+
+   TODO: adapt pseudocode
 
        FUNCTION BLAKE3_F( h[0..7], m[0..15], t, f )
        |
@@ -321,13 +328,6 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
        |
        END FUNCTION.
 
-4.  Tree Mode of Operation
-
-   Intro to tree processing and parallelism
-
-4.1.  Data padding
-
-
 
 
 
@@ -336,6 +336,13 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 Aumasson, et al.         Expires 6 January 2024                 [Page 6]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
+
+
+4.  Tree Mode of Operation
+
+   Intro to tree processing and parallelism
+
+4.1.  Data padding
 
 
 4.2.  Chunk Processing
@@ -377,13 +384,6 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
               "The Hash Function BLAKE", October 2008,
               <https://aumasson.jp/blake/>.
 
-   [BLAKE2]   Aumasson, J-P., Neves, S., Wilcox-O'Hearn, Z., and C.
-              Winnerlein, "BLAKE2: simpler, smaller, fast as MD5",
-              January 2013, <https://www.blake2.net/>.
-
-   [BLAKE3]   O'Connor, J., Aumasson, J-P., Neves, S., and Z. Wilcox-
-              O'Hearn, "BLAKE3", January 2020,
-              <https://github.com/BLAKE3-team/BLAKE3>.
 
 
 
@@ -393,6 +393,14 @@ Aumasson, et al.         Expires 6 January 2024                 [Page 7]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 
+
+   [BLAKE2]   Aumasson, J-P., Neves, S., Wilcox-O'Hearn, Z., and C.
+              Winnerlein, "BLAKE2: simpler, smaller, fast as MD5",
+              January 2013, <https://www.blake2.net/>.
+
+   [BLAKE3]   O'Connor, J., Aumasson, J-P., Neves, S., and Z. Wilcox-
+              O'Hearn, "BLAKE3", January 2020,
+              <https://github.com/BLAKE3-team/BLAKE3>.
 
    [FIPS140-2IG]
               NIST, US., "Implementation Guidance for FIPS PUB 140-2 and
@@ -434,14 +442,6 @@ Appendix B.  Example of BLAKE3 Computation
                   A44E7C31 41D4759B 95BF33D3 9A99C181 608A3A6B B666383E
                   7A8DD50F BE378ED7 353D1EE6 3BB44C6B
 
-   (i=2)  v[16] = 3AE30FE3 0982A96B E88185B4 3E339B16 F24338CD 0E66D326
-                  E005ED0C D591A277 180B1F3A FCF43914 30DB62D6 4847831C
-                  7F00C58E FB847886 C544E836 524AB0E2
-
-   (i=3)  v[16] = 7A3BE783 997546C1 D45246DF EDB5F821 7F98A742 10E864E2
-                  D4AB70D0 C63CB1AB 6038DA9E 414594B0 F2C218B5 8DA0DCB7
-                  D7CD7AF5 AB4909DF 85031A52 C4EDFC98
-
 
 
 
@@ -449,6 +449,14 @@ Aumasson, et al.         Expires 6 January 2024                 [Page 8]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 
+
+   (i=2)  v[16] = 3AE30FE3 0982A96B E88185B4 3E339B16 F24338CD 0E66D326
+                  E005ED0C D591A277 180B1F3A FCF43914 30DB62D6 4847831C
+                  7F00C58E FB847886 C544E836 524AB0E2
+
+   (i=3)  v[16] = 7A3BE783 997546C1 D45246DF EDB5F821 7F98A742 10E864E2
+                  D4AB70D0 C63CB1AB 6038DA9E 414594B0 F2C218B5 8DA0DCB7
+                  D7CD7AF5 AB4909DF 85031A52 C4EDFC98
 
    (i=4)  v[16] = 2A8B8CB7 1ACA82B2 14045D7F CC7258ED 383CF67C E090E7F9
                   3025D276 57D04DE4 994BACF0 F0982759 F17EE300 D48FC2D5
@@ -486,6 +494,18 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 
 Authors' Addresses
 
+
+
+
+
+
+
+
+Aumasson, et al.         Expires 6 January 2024                 [Page 9]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
+
+
    Jean-Philippe Aumasson (editor)
    Taurus SA
    Taurus SA
@@ -499,13 +519,6 @@ Authors' Addresses
    Samuel Neves
 
 
-
-
-Aumasson, et al.         Expires 6 January 2024                 [Page 9]
-
-Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
-
-
    Jack O'Connor
    SpaceX
    356 167th Ave NE
@@ -516,19 +529,6 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti       July 2023
 
 
    Zooko Wilcox-O'Hearn
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
