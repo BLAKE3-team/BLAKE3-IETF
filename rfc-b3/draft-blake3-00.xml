@@ -118,7 +118,8 @@
 HMAC 
 </t>
 
-<t> TODO: Performance: superfast and parallel, any platform
+<t> TODO: Performance: superfast and parallel, any platform, multi-core
+and SIMD
 </t>
 
 <t> TODO: Security: summary, bitlevel security
@@ -135,15 +136,23 @@ any platform, software or hardware.
     </t>
 </section>
 
-<section title="Conventions, Constants, and Variables"
-    anchor="variables">
+<!-- **************************************************   -->
 
-<section title="Interface" anchor="interface">
+<section title="Conventions and Constants" anchor="conventions">
 
-
+<section title="Interfaces" anchor="interfaces">
+<t> Describe the different modes/interfaces
+    <list style="hanging">
+        <t hangText="Unkeyed hashing:"> ..
+        </t>
+        <t hangText="Keyed hashing:  "> ..
+        </t>
+        <t hangText="Key derivation: "> ..
+        </t>
+    </list>
+</t>
 </section>
 
-<section title="Compression Function Input Values">
 
 
 <section title="Arithmetic Notation">
@@ -174,10 +183,9 @@ any platform, software or hardware.
             Rotate "x" right by "n".</t>
     </list></t>
 <figure><artwork><![CDATA[
-
 ]]></artwork></figure>
-
 </section>
+
 
 <section title="Little-Endian Interpretation of Words as Bytes">
 
@@ -215,7 +223,7 @@ any platform, software or hardware.
 
 </section>
 
-<section title="Message Word Permutation">
+<section title="Message Word Permutation" anchor="permutation">
 
 <t> TODO: make a table.
 Unlike BLAKE2, BLAKE3 uses a single work permutation, mapping the
@@ -227,15 +235,15 @@ indices 0, 1, ..., 15 to respectively:
 ]]></artwork></figure>
 </section>
 
-<section title="Compression Function Flags">
+<section title="Compression Function Flags" anchor="flags">
 
 <t> Describe flags as a table</t>
 
 </section>
-
 </section>
 
 
+<!-- **************************************************   -->
 
 <section anchor="compression" title="Compression Function">
 
@@ -265,32 +273,27 @@ indices 0, 1, ..., 15 to respectively:
 
     </list></t>
 <figure><artwork><![CDATA[
-
 ]]></artwork></figure>
-
-</section>
-
-
 </section>
 
 <section title="Quarter-Round Function G">
 
 <t> The G primitive function mixes two input words "x" and "y" into four
     words indexed by "a", "b", "c", and "d" in the working vector v[0..15].
-    The full modified vector is returned. The rotation constants
-    (R1, R2, R3, R4) are given in <xref target="parameters" />.</t>
+    The full modified vector is returned. 
+</t>
 
 <figure><artwork><![CDATA[
     FUNCTION G( v[0..15], a, b, c, d, x, y )
     |
-    |   v[a] := (v[a] + v[b] + x) mod 2**w
-    |   v[d] := (v[d] ^ v[a]) >>> R1
-    |   v[c] := (v[c] + v[d])     mod 2**w
-    |   v[b] := (v[b] ^ v[c]) >>> R2
-    |   v[a] := (v[a] + v[b] + y) mod 2**w
-    |   v[d] := (v[d] ^ v[a]) >>> R3
-    |   v[c] := (v[c] + v[d])     mod 2**w
-    |   v[b] := (v[b] ^ v[c]) >>> R4
+    |   v[a] := (v[a] + v[b] + x) mod 2**32
+    |   v[d] := (v[d] ^ v[a]) >>> 16
+    |   v[c] := (v[c] + v[d])     mod 2**32
+    |   v[b] := (v[b] ^ v[c]) >>> 12
+    |   v[a] := (v[a] + v[b] + y) mod 2**32
+    |   v[d] := (v[d] ^ v[a]) >>> 8 
+    |   v[c] := (v[c] + v[d])     mod 2**32
+    |   v[b] := (v[b] ^ v[c]) >>> 7 
     |
     |   RETURN v[0..15]
     |
@@ -347,69 +350,44 @@ arguments in XREF. BLAKE3 does 8 rounds, numbered 0 to 7.
     END FUNCTION.
 ]]></artwork></figure>
 </section>
+</section>
+
+<!-- **************************************************   -->
+
+<section anchor="treemode" title="Tree Mode of Operation">
+
+<t>Intro to tree processing and parallelism</t>
+
+<section anchor="padding" title="Data padding">
+<t></t>
+</section>
+
+<section anchor="chunkspro" title="Chunk Processing">
+<t>Define chunk and explain processing with pseudocode and required flags</t>
+</section>
+
+<section anchor="treestruct" title="Binary Tree Structure">
+<t></t>
+</section>
 
 </section>
 
-<section anchor="tree" title="Chunk Processing">
-</section>
+<!-- **************************************************   -->
 
-<section anchor="tree" title="Tree Processing">
-</section>
+<section anchor="apps" title="Applications">
 
-<section anchor="tree" title="Applications">
-</section>
-
-
-
-
-<section title="Padding data and Computing a BLAKE2 Digest">
-
-<t> Key and data input is split and padded into "dd" message blocks
-    d[0..dd-1], each consisting of 16 words (or "bb" bytes).</t>
-
-<t> If a secret key is used (kk > 0), it is padded with zero bytes and set
-    as d[0]. Otherwise d[0] is the first data block. The final data block
-    d[dd-1] is also padded with zero to "bb" bytes (16 words).</t>
-
-<t> Number of blocks is therefore dd = ceil(kk / bb) + ceil(ll / bb).
-    However in special case of unkeyed empty message (kk = 0 and ll = 0),
-    we still set dd = 1 and d[0] consists of all zeros.</t>
-
-<t> The following procedure for processes the padded data blocks
-    into an "nn"-byte final hash value. See <xref target="variables" />
-    for description of various variables and constants used. </t>
-
-<figure><artwork><![CDATA[
-    FUNCTION BLAKE2( d[0..dd-1], ll, kk, nn )
-    |
-    |   h[0..7] := IV[0..7]             // Initialization Vector.
-    |
-    |   // Parameter block p[0]
-    |   h[0] := h[0] ^ 0x01010000 ^ (kk << 8) ^ nn
-    |
-    |   // Process padded key and data blocks
-    |   IF dd > 1 THEN
-    |   |   FOR i = 0 TO dd - 2 DO
-    |   |   |   h := F( h, d[i], (i + 1) * bb, FALSE )
-    |   |   END FOR.
-    |   END IF.
-    |
-    |   // Final block.
-    |   IF kk = 0 THEN
-    |   |   h := F( h, d[dd - 1], ll, TRUE )
-    |   ELSE
-    |   |   h := F( h, d[dd - 1], ll + bb, TRUE )
-    |   END IF.
-    |
-    |   RETURN first "nn" bytes from little-endian word array h[].
-    |
-    END FUNCTION.
-
-
-]]></artwork></figure>
+<t>List applications similarly to the specs</t>
 
 </section>
+
+<!-- **************************************************   -->
+
+<section anchor="impl" title="Implementation Considerations">
+
+<t>B3 impls MAY use.. parallel impl, SIMD usage, incremental hashing
+</t>
 </section>
+
 
 
 <section anchor="Acknowledgements" title="Acknowledgements">
@@ -434,7 +412,7 @@ arguments in XREF. BLAKE3 does 8 rounds, numbered 0 to 7.
     for detailed cryptanalytic rationale behind its design.</t>
 
 <t> TODO: Note on source code security (reference, no guarantees wrt
-    side channels, software security, use at your own risk).
+    side channels, software security, use at your own risk). </t>
 </section>
 
 </middle>
@@ -528,11 +506,17 @@ arguments in XREF. BLAKE3 does 8 rounds, numbered 0 to 7.
 </reference>
 </references>
 
+<section title="BLAKE3 Implementations" anchor="b3src">
+<t>Cite Rust and C ref code, explain why not copied in the RFC, give git
+references
+</t>
+</section>
 
 <section title="Example of BLAKE3 Computation" anchor="b3test">
 
-<t> We compute the unkeyed hash of three ASCII bytes "abc" with
-    BLAKE3, and show internal values during computation.
+<t> 
+    Give examples of intermediate/final values for 1) the compression function,
+    and 2) for each of the modes
 </t>
 
 <figure><artwork><![CDATA[
@@ -593,64 +577,5 @@ BLAKE3("abc") = 50 8C 5E 8C 32 7C 14 E2 E1 A7 2B A3 4E EB 45 2F
 </section>
 
 
-<section title="BLAKE3 Implementation C Source" anchor="blake2ssrc">
-<section title="blake3.h">
-<figure><artwork><![CDATA[
-<CODE BEGINS>
-// blake3.h
-<CODE ENDS>
-]]></artwork></figure>
-</section>
-
-<section title="blake3.c">
-<figure><artwork><![CDATA[
-<CODE BEGINS>
-// blake3.c
-<CODE ENDS>
-]]></artwork></figure>
-</section>
-</section>
-
-<section title="BLAKE3 Self-Test Module C Source"
-    anchor="selftest">
-
-<t> This module computes a series of keyed and unkeyed hashes from
-    deterministically generated pseudo-random data, and computes a hash
-    over those results. This is a fairly exhaustive, yet compact and fast
-    method for verifying that the hashing module is functioning correctly.</t>
-
-<t> Such testing is RECOMMENDED especially when compiling the implementation
-    for a new a target platform configuration. Furthermore, some security
-    standards such as FIPS-140 may require a Power-On Self Test (POST)
-    to be performed every time the cryptographic module is loaded
-    <xref target="FIPS140-2IG" />.</t>
-
-<figure><artwork><![CDATA[
-<CODE BEGINS>
-// test_main.c
-// Self test module for BLAKE3 -- and a stub main().
-
-#include <stdio.h>
-
-#include "blake3.h"
-
-// BLAKE3 self-test validation. Return 0 when OK.
-
-int blake3_selftest()
-{
-
-    return 0;
-}
-
-// Test driver.
-
-int main(int argc, char **argv)
-{
-
-    return 0;
-}
-<CODE ENDS>
-]]></artwork></figure>
-</section>
 </back>
 </rfc>
