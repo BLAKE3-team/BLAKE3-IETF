@@ -1,6 +1,6 @@
 # makefile 
 
-NAME		= draft-blake3-00
+NAME		= draft-aumasson-blake3-00
 
 $(NAME).pdf:	$(NAME).ps
 		ps2pdf -sPAPERSIZE=a4 $(NAME).ps $(NAME).pdf

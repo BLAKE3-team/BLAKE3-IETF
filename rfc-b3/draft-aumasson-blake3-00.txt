@@ -17,12 +17,12 @@ Expires: 6 January 2024
 
 Abstract
 
-   This document specifies the cryptographic hashing primitive BLAKE3,
-   an algorithm designed to be fast and highly parallelizable.  Apart
-   from the standard hashing functionality, BLAKE3 can serve to realize
-   the following cryptographic functionalities: extendable-output
-   function (XOF), key derivation function (KDF), pseudo-random function
-   (PRF), and message authentication code (MAC).
+   This document specifies the cryptographic hashing primitive BLAKE3, a
+   secure algorithm designed to be fast and highly parallelizable.
+   Apart from the standard hashing functionality, BLAKE3 can serve to
+   realize the following cryptographic functionalities: extendable-
+   output function (XOF), key derivation function (KDF), pseudo-random
+   function (PRF), and message authentication code (MAC).
 
 Status of This Memo
 

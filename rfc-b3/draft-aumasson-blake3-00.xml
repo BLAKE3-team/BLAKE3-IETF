@@ -94,11 +94,11 @@
 
 <abstract>
 <t> This document specifies the cryptographic hashing primitive BLAKE3,
-    an algorithm designed to be fast and highly parallelizable.
-    Apart from the standard hashing functionality, BLAKE3 can serve to realize
-    the following cryptographic functionalities: extendable-output
-    function (XOF), key derivation function (KDF),  pseudo-random
-    function (PRF), and message authentication code (MAC).
+    a secure algorithm designed to be fast and highly parallelizable.
+    Apart from the standard hashing functionality, BLAKE3 can serve to
+    realize the following cryptographic functionalities:
+    extendable-output function (XOF), key derivation function (KDF),
+    pseudo-random function (PRF), and message authentication code (MAC).
     </t>
 </abstract>
 </front>
@@ -109,13 +109,46 @@
 
 <t> The <xref target="BLAKE3" /> cryptographic hash function was
     designed by Jack O'Connor, Jean-Philippe Aumasson, Samuel Neves, and
-    Zooko Wilcox-O'Hearn.</t>
-
-<t> TODO: On BLAKE family, ref B2 and its RFC..
+    Zooko Wilcox-O'Hearn.
+    BLAKE3 is an evolution from its predecessors <xref target="BLAKE"> and
+    <xref target="BLAKE2">. BLAKE2 is widely used in open-source
+    software and in proprietary software. For example, the Linux kernel
+    (from version 5.17) uses BLAKE2 in its cryptographic
+    pseudorandom generator, and the WireGuard secure tunnel protocol
+    uses BLAKE2 for hashing and keyed hashing. 
 </t>
 
-<t> TODO: Functionality: B3 modes, no need for other modes; cite HKDF,
+<t> 
+    BLAKE3 was designed to be as secure as BLAKE2, yet considerably
+    faster, thanks to 1) a compression function with a reduced number of
+    rounds, and 2) a tree-based mode allowing implementations to
+    leverage parallel processing. Specifically, BLAKE3 was designed to
+    take advantage of multi-thread and multi-core processing, as well as
+    of single-instruction multiple-data (SIMD) instructions of modern
+    processor architectures. 
+</t>    
+
+<t>
+    At the time of its publication, BLAKE3 was demonstrated to be
+    approximately five times faster than BLAKE2 when hashing 16 kibibyte
+    messages and using a single thread. When using multiple threads and
+    hashing large messages, BLAKE3 can be more than twenty times faster
+    than BLAKE2.
+</t>
+
+
+<t> 
+    BLAKE3 was also designed to instantiate multiple cryptographic
+    primitives, to offer a simpler and more efficient alternative to
+    dedicated modes and primitives:
+
+TODO: Functionality: B3 modes, no need for other modes; cite HKDF,
 HMAC 
+</t>
+
+<t>
+    BLAKE3 can be a drop-in replacement for hash algorithms such as US
+    Secure Hash Algorithms SHA, SHA-based .. TODO 
 </t>
 
 <t> TODO: Performance: superfast and parallel, any platform, multi-core
@@ -474,6 +507,18 @@ arguments in XREF. BLAKE3 does 8 rounds, numbered 0 to 7.
             initials="L" surname="Henzen" />
     <date month="October" year="2008" />
     </front>
+</reference>
+
+<reference anchor="RFC7693">
+    <front>
+    <title> The BLAKE2 Cryptographic Hash and Message Authentication
+    Code (MAC)</title>
+    <author fullname="Markku-Juhani O. Saarinen" initials="M-J" surname="Saarinen" />
+    <author fullname="Jean-Philippe Aumasson" initials="J-P"
+    surname="Aumasson" />
+    <date month="November" year="2015" />
+    </front>
+    <seriesInfo name="RFC" value="7693" />
 </reference>
 
 <reference anchor="RFC2119">
