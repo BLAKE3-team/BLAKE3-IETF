@@ -140,7 +140,17 @@
 <t> 
     BLAKE3 was also designed to instantiate multiple cryptographic
     primitives, to offer a simpler and more efficient alternative to
-    dedicated modes and primitives:
+    dedicated modes and algorithms. Said primitives include, aside from
+    a basic hash function:
+
+    <list style="hanging">
+        <t hangText="Unkeyed hashing:"> ..
+        </t>
+        <t hangText="Keyed hashing:  "> ..
+        </t>
+        <t hangText="Key derivation: "> ..
+        </t>
+    </list>
 
 TODO: Functionality: B3 modes, no need for other modes; cite HKDF,
 HMAC 
