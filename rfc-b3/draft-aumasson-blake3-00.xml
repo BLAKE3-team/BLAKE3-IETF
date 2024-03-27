@@ -17,7 +17,7 @@
 
 <rfc category="info" docName="draft-blake3-00" ipr="trust200902">
 <front>
-    <title>The BLAKE3 Cryptographic Hashing Primitive</title>
+    <title>The BLAKE3 Hashing Framework</title>
 
     <author fullname="Jean-Philippe Aumasson"
             initials="J-P" surname="Aumasson" role="editor">
@@ -66,7 +66,7 @@
 
     <author fullname="Zooko Wilcox-O'Hearn"
             initials="Z" surname="Wilcox-O'Hearn">
-        <organization></organization>
+        <organization>Zcash</organization>
         <address>
             <postal>
                 <street></street>
@@ -107,7 +107,8 @@
 
 <section title="Introduction and Terminology">
 
-<t> The <xref target="BLAKE3" /> cryptographic hash function was
+    <t> 
+    The <xref target="BLAKE3" /> cryptographic hash function was
     designed by Jack O'Connor, Jean-Philippe Aumasson, Samuel Neves, and
     Zooko Wilcox-O'Hearn.
     BLAKE3 is an evolution from its predecessors <xref target="BLAKE" /> and
@@ -116,62 +117,93 @@
     (from version 5.17) uses BLAKE2 in its cryptographic
     pseudorandom generator, and the WireGuard secure tunnel protocol
     uses BLAKE2 for hashing and keyed hashing. 
-</t>
+    </t>
 
-<t> 
+    <t> 
     BLAKE3 was designed to be as secure as BLAKE2, yet considerably
     faster, thanks to 1) a compression function with a reduced number of
     rounds, and 2) a tree-based mode allowing implementations to
-    leverage parallel processing. Specifically, BLAKE3 was designed to
-    take advantage of multi-thread and multi-core processing, as well as
-    of single-instruction multiple-data (SIMD) instructions of modern
+    leverage parallel processing. BLAKE3 was designed to take advantage
+    of multi-thread and multi-core processing, as well as of
+    single-instruction multiple-data (SIMD) instructions of modern
     processor architectures. 
-</t>    
+    </t>    
 
-<t>
+    <t>
     At the time of its publication, BLAKE3 was demonstrated to be
     approximately five times faster than BLAKE2 when hashing 16 kibibyte
     messages and using a single thread. When using multiple threads and
     hashing large messages, BLAKE3 can be more than twenty times faster
     than BLAKE2.
-</t>
+    </t>
 
+<section title="Hashing Modes">
 
-<t> 
+    <t> 
     BLAKE3 was also designed to instantiate multiple cryptographic
     primitives, to offer a simpler and more efficient alternative to
-    dedicated modes and algorithms. Said primitives include, aside from
-    a basic hash function:
+    dedicated modes and algorithms. These primitives include:
 
     <list style="hanging">
-        <t hangText="Unkeyed hashing:"> ..
+        <t hangText="Unkeyed hashing (hash):"> This is the general-purpose
+        hashing mode, taking a single input of arbitrary size. BLAKE3 in
+        this mode can be used whenever a preimage- or
+        collision-resistant hash function is needed, and to instantiate
+        random oracles in cryptographic protocols. For example, BLAKE3
+        can replace SHA-3, as well as any SHA-2 instance.
         </t>
-        <t hangText="Keyed hashing:  "> ..
+        <t hangText="Keyed hashing (keyed_hash):"> The keyed mode takes
+        a 32-byte key, in addition to the arbitrary size input. BLAKE3
+        in this mode can be used whenever a pseudorandom function (PRF)
+        or message authentication code (MAC) is needed. For example,
+        keyed BLAKE3 can replace HMAC.
         </t>
-        <t hangText="Key derivation: "> ..
+        <t hangText="Key derivation (derive_key):"> The key derivation
+        mode takes two input values, each of arbitrary size: a context
+        string, and key material. BLAKE3 in this mode can be used
+        whenever a key derviation function (KDF) is needed. For example,
+        BLAKE3 in key derivation mode can replace HKDF.
         </t>
     </list>
+    </t>
+    <t>
+    Further, all 3 modes can produce an output of arbitrary size. The
+    hash mode can thus be used as an extendable-output-function (XOF);
+    the keyed hash mode can thus be used as a deterministic random bit
+    generator (DRBG). By default, each mode returns a 32-byte output.
+    </t>
 
-TODO: Functionality: B3 modes, no need for other modes; cite HKDF,
-HMAC 
-</t>
+</section>
 
-<t>
-    BLAKE3 can be a drop-in replacement for hash algorithms such as US
-    Secure Hash Algorithms SHA, SHA-based .. TODO 
-</t>
+<section title="Hashing Structure">
 
-<t> TODO: Performance: superfast and parallel, any platform, multi-core
-and SIMD
-</t>
+    <t>
+    We provide a high-level overview of BLAKE3's internal structure, and
+    introduce the associated terminology. 
+    </t>
 
-<t> TODO: Security: summary, bitlevel security
-</t>
+    <t>
+    BLAKE3 processes input data according to a binary tree structure. It
+    first splits its input into 1024-byte chunks, processing each chunk
+    independently of the other chunks, using a compression function
+    iterating over each of the 16 consecutive 16-byte blocks of a chunk.
+    </t>
+    
+    <t>
+    From the hash of each chunk, a binary hash tree is built to compute
+    the root of the tree, which determines the BLAKE3 output.
+    </t>
 
-<t> BLAKE3 is believed to be highly secure and have good performance on
-any platform, software or hardware.
-</t>
+    <t>
+    In the simplest case, there is only one chunk. In this case, this
+    node is seen as the tree's root and its output determines BLAKE3's
+    output. If the number of chunks is a power of 2, the binary tree is
+    a complete tree and all leaves are at the same level. If the number
+    of chunks is not a power of 2, not all chunks will be at the same
+    level (or layer) of the tree.
+    </t>
 
+</section>
 
 <t> The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
     "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
@@ -182,21 +214,6 @@ any platform, software or hardware.
 <!-- **************************************************   -->
 
 <section title="Conventions and Constants" anchor="conventions">
-
-<section title="Interfaces" anchor="interfaces">
-<t> Describe the different modes/interfaces
-    <list style="hanging">
-        <t hangText="Unkeyed hashing:"> ..
-        </t>
-        <t hangText="Keyed hashing:  "> ..
-        </t>
-        <t hangText="Key derivation: "> ..
-        </t>
-    </list>
-</t>
-</section>
-
-
 
 <section title="Arithmetic Notation">
 
@@ -369,26 +386,24 @@ any platform, software or hardware.
             </t>
             <t>DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL (0x40):
             These flags are used in BLAKE3's derive_key mode, where the
-            context string is first hashed TODOOO</t>
+            context string is first hashed by a (non-keyed) BLAKE3
+            instance setting the DERIVE_KEY_CONTEXT to all compression
+            functions; the 32-byte output is then used as the key of a
+            keyed BLAKE3 instance hashing the key material, and setting
+            DERIVE_KEY_MATERIAL (but not DERIVE_KEY_CONTEXT_ to all
+            compression functions.</t>
         </list>
     </t>
-    <texttable>
-        <ttcol>Flag</ttcol>
-        <ttcol>Description</ttcol>
-        <c>---------------------------------------</c>
-        <c>---------------------------------------</c>
-        <c>0x01</c> <c>CHUNK_START</c>
-        <c>0x02</c> <c>CHUNK_END</c>
-        <c>0x04</c> <c>PARENT</c>
-        <c>0x08</c> <c>ROOT</c>
-        <c>0x10</c> <c>KEYED_HASH</c>
-        <c>0x20</c> <c>DERIVE_KEY_CONTEXT</c>
-        <c>0x40</c> <c>DERIVE_KEY_MATERIAL</c>
-    </texttable>
 
-</section>
+    <t>If two or more flags are set, then all their respective bits
+    appear in the flags compression function input. This combination can
+    be implemented as an XOR or integer addition between the flags. For
+    example, if CHUNK_START and KEYED_HASH are set, then the flags input
+    word will be the 32-bit word 0x00000011, where 0x11 = 0x10 + 0x01.
+    </t>
 </section>
 
+</section>
 
 <!-- **************************************************   -->
 
@@ -411,7 +426,7 @@ any platform, software or hardware.
         32-bit word encoding the number of application data bytes in
         the block, at least 1 and at most 64. That is, ad is equal to 64
         minus the number of padding bytes (which are set to zero).</t>
-        <t hangText="       flag">
+        <t hangText="      flags">
         32-bit word encoding the flags defined for a given compression
         function call, see <xref target="flags" />.</t>
 
@@ -448,53 +463,67 @@ any platform, software or hardware.
 
 <section title="Compression Function Processing">
 
-    <t> BLAKE3's compression function returns a new 8-word state, given
-    as input an 8-word state h, a 16-word message m, a 2-word counter t,
-    and a word flag.</t>
+    <t>BLAKE3's compression function taks as input an 8-word state h, a
+    16-word message m, a 2-word counter t, a data length word len, and a
+    word flags (as a bit field).</t>
 
     <t>BLAKE3's compression does 8 rounds, numbered 0 to 7. Each round
     includes 8 calls to the G functoin.</t>
 
-    <t>TODO: adapt pseudocode, deal with permutation</t>
-
 <figure><artwork><![CDATA[
-    FUNCTION BLAKE3_F( h[0..7], m[0..15], t, len, flags )
+    FUNCTION BLAKE3_COMPRESS( h[0..7], m[0..15], t, len, flags )
     |
     |   // Initialize local 16-word vector v[0..15]
     |   v[0..7] := h[0..7]              // First half from state.
-    |   v[8..11] := IV[0..7]            // Second half from IV.
+    |   v[8..11] := IV[0..3]            // Second half from IV.
     |
-    |   v[12] := v[12] ^ (t mod 2**w)   // Low word of the offset.
-    |   v[13] := v[13] ^ (t >> w)       // High word.
-    |
-        **TODO**
-    |   IF f = TRUE THEN                // last block flag?
-    |   |   v[14] := v[14] ^ 0xFF..FF   // Invert all bits.
-    |   END IF.
+    |   v[12] :=  t[0]                  // Low word of the counter.
+    |   v[13] :=  t[1]                  // High word of the counter.
+    |   v[14] :=  len                   // Application data length.
+    |   v[15] :=  flags                 // Flags.
     |
     |   // Cryptographic mixing
-    |   FOR i = 0 TO 7 DO           // 8 rounds.
+    |   FOR i = 0 TO 7 DO               // 8 rounds.
     |   |
-    |   |   v := G( v, 0, 4,  8, 12, m[s[ 0]], m[s[ 1]] )
-    |   |   v := G( v, 1, 5,  9, 13, m[s[ 2]], m[s[ 3]] )
-    |   |   v := G( v, 2, 6, 10, 14, m[s[ 4]], m[s[ 5]] )
-    |   |   v := G( v, 3, 7, 11, 15, m[s[ 6]], m[s[ 7]] )
+    |   |   v := G( v, 0, 4,  8, 12, m[ 0], m[ 1] )
+    |   |   v := G( v, 1, 5,  9, 13, m[ 2], m[ 3] )
+    |   |   v := G( v, 2, 6, 10, 14, m[ 4], m[ 5] )
+    |   |   v := G( v, 3, 7, 11, 15, m[ 6], m[ 7] )
     |   |
-    |   |   v := G( v, 0, 5, 10, 15, m[s[ 8]], m[s[ 9]] )
-    |   |   v := G( v, 1, 6, 11, 12, m[s[10]], m[s[11]] )
-    |   |   v := G( v, 2, 7,  8, 13, m[s[12]], m[s[13]] )
-    |   |   v := G( v, 3, 4,  9, 14, m[s[14]], m[s[15]] )
+    |   |   v := G( v, 0, 5, 10, 15, m[ 8], m[ 9] )
+    |   |   v := G( v, 1, 6, 11, 12, m[10], m[11] )
+    |   |   v := G( v, 2, 7,  8, 13, m[12], m[13] )
+    |   |   v := G( v, 3, 4,  9, 14, m[15], m[15] )
+    |   |
+    |   |   PERMUTE(m)                  // Apply the permutation.
     |   |
     |   END FOR
     |
-    |   FOR i = 0 TO 7 DO               // XOR the two halves.
+    |   // Compute the output state (untruncated)
+    |   FOR i = 0 TO 15 DO 
     |   |   h[i] := h[i] ^ v[i] ^ v[i + 8]
     |   END FOR.
     |
-    |   RETURN h[0..7]                  // New state.
+    |   RETURN v
     |
     END FUNCTION.
 ]]></artwork></figure>
+
+    <t>When processing chunks or computing parent nodes, the output is
+    always truncated to the first 8 words v[0..7]. When computing the
+    output value, all the 16 words may be used (see the Extendable
+    Output section).
+    </t>
+
+    <t>The permutation of words may be implemented by pre-computing the
+    indices corresponding to 0, 1, 2, ..., 7 iterations of the
+    permutation, and then applying each of these 8 permutations to the
+    initial message at each of the 8 rounds. These 8 permutations would
+    then be:
+
+    TODO
+    </t>
+
 </section>
 </section>
 
@@ -502,9 +531,12 @@ any platform, software or hardware.
 
 <section anchor="treemode" title="Tree Mode of Operation">
 
-<t>Intro to tree processing; chunks as leaves; explain padding with zeros</t>
-
-</section>
+    <t>The following describes BLAKE3's tree mode of operation, first
+    specifying the processing of input data as chunks (Chunk Processing
+    section), then describing how the binary hash tree structure is
+    formed for a given number of chunks (Binary Tree Processing
+    section).
+    </t>
 
 <section anchor="chunkspro" title="Chunk Processing">
 

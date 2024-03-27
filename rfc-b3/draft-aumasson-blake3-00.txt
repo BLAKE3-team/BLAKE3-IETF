@@ -5,7 +5,7 @@
 Internet Engineering Task Force                       J-P. Aumasson, Ed.
 Internet-Draft                                                 Taurus SA
 Intended status: Informational                                  S. Neves
-Expires: 27 September 2024                                              
+Expires: 28 September 2024                                              
                                                              J. O'Connor
                                                                   SpaceX
                                                        Z. Wilcox-O'Hearn
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Aumasson, et al.        Expires 27 September 2024               [Page 1]
+Aumasson, et al.        Expires 28 September 2024               [Page 1]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
@@ -66,30 +66,29 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 Table of Contents
 
    1.  Introduction and Terminology  . . . . . . . . . . . . . . . .   2
-   2.  Conventions and Constants . . . . . . . . . . . . . . . . . .   3
-     2.1.  Interfaces  . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Conventions and Constants . . . . . . . . . . . . . . . . . .   4
+     2.1.  Interfaces  . . . . . . . . . . . . . . . . . . . . . . .   4
      2.2.  Arithmetic Notation . . . . . . . . . . . . . . . . . . .   4
-     2.3.  Little-Endian Interpretation of Words as Bytes  . . . . .   4
+     2.3.  Little-Endian Convention  . . . . . . . . . . . . . . . .   4
      2.4.  Initial Value (IV)  . . . . . . . . . . . . . . . . . . .   5
      2.5.  Message Word Permutation  . . . . . . . . . . . . . . . .   5
-     2.6.  Compression Function Flags  . . . . . . . . . . . . . . .   5
-   3.  Compression Function  . . . . . . . . . . . . . . . . . . . .   6
-     3.1.  Compression Function Input Values . . . . . . . . . . . .   6
-     3.2.  Quarter-Round Function G  . . . . . . . . . . . . . . . .   7
-     3.3.  Compression Function Processing . . . . . . . . . . . . .   7
-   4.  Tree Mode of Operation  . . . . . . . . . . . . . . . . . . .   8
-     4.1.  Data padding  . . . . . . . . . . . . . . . . . . . . . .   8
-     4.2.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .   9
-     4.3.  Binary Tree Structure . . . . . . . . . . . . . . . . . .   9
-   5.  Applications  . . . . . . . . . . . . . . . . . . . . . . . .   9
-   6.  Implementation Considerations . . . . . . . . . . . . . . . .   9
-   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   9
-   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
-   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
-   10. Informative References  . . . . . . . . . . . . . . . . . . .  10
-   Appendix A.  BLAKE3 Implementations . . . . . . . . . . . . . . .  11
-   Appendix B.  Example of BLAKE3 Computation  . . . . . . . . . . .  11
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
+     2.6.  Compression Function Flags  . . . . . . . . . . . . . . .   6
+   3.  Compression Function  . . . . . . . . . . . . . . . . . . . .   7
+     3.1.  Compression Function Input Values . . . . . . . . . . . .   7
+     3.2.  Quarter-Round Function G  . . . . . . . . . . . . . . . .   8
+     3.3.  Compression Function Processing . . . . . . . . . . . . .   8
+   4.  Tree Mode of Operation  . . . . . . . . . . . . . . . . . . .   9
+     4.1.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .   9
+     4.2.  Binary Tree Processing  . . . . . . . . . . . . . . . . .  11
+   5.  Applications  . . . . . . . . . . . . . . . . . . . . . . . .  11
+   6.  Implementation Considerations . . . . . . . . . . . . . . . .  11
+   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  11
+   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
+   10. Informative References  . . . . . . . . . . . . . . . . . . .  12
+   Appendix A.  BLAKE3 Implementations . . . . . . . . . . . . . . .  13
+   Appendix B.  Example of BLAKE3 Computation  . . . . . . . . . . .  13
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  14
 
 1.  Introduction and Terminology
 
@@ -102,21 +101,25 @@ Table of Contents
    the WireGuard secure tunnel protocol uses BLAKE2 for hashing and
    keyed hashing.
 
-   BLAKE3 was designed to be as secure as BLAKE2, yet considerably
-   faster, thanks to 1) a compression function with a reduced number of
-   rounds, and 2) a tree-based mode allowing implementations to leverage
-   parallel processing.  Specifically, BLAKE3 was designed to take
 
 
 
-Aumasson, et al.        Expires 27 September 2024               [Page 2]
+
+
+
+
+
+Aumasson, et al.        Expires 28 September 2024               [Page 2]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 
-   advantage of multi-thread and multi-core processing, as well as of
-   single-instruction multiple-data (SIMD) instructions of modern
-   processor architectures.
+   BLAKE3 was designed to be as secure as BLAKE2, yet considerably
+   faster, thanks to 1) a compression function with a reduced number of
+   rounds, and 2) a tree-based mode allowing implementations to leverage
+   parallel processing.  LAKE3 was designed to take advantage of multi-
+   thread and multi-core processing, as well as of single-instruction
+   multiple-data (SIMD) instructions of modern processor architectures.
 
    At the time of its publication, BLAKE3 was demonstrated to be
    approximately five times faster than BLAKE2 when hashing 16 kibibyte
@@ -126,32 +129,46 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
    BLAKE3 was also designed to instantiate multiple cryptographic
    primitives, to offer a simpler and more efficient alternative to
-   dedicated modes and algorithms.  Said primitives include, aside from
-   a basic hash function:
+   dedicated modes and algorithms.  These primitives include:
 
-   Unkeyed hashing:  ..
+   Unkeyed hashing (hash):  This is the general-purpose hashing mode,
+      taking a single input of arbitrary size.  BLAKE3 in this mode can
+      be used whenever a preimage- or collision-resistant hash function
+      is needed, and to instantiate random oracles in cryptographic
+      protocols.  For example, BLAKE3 can replace SHA-3, as well as any
+      SHA-2 instance.
 
-   Keyed hashing:  ..
+   Keyed hashing (keyed_hash):  The keyed mode takes a 32-byte key, in
+      addition to the arbitrary size input.  BLAKE3 in this mode can be
+      used whenever a pseudorandom function (PRF) or message
+      authentication code (MAC) is needed.  For example, keyed BLAKE3
+      can replace HMAC.
 
-   Key derivation:  ..
+   Key derivation (derive_key):  The key derivation mode takes two input
+      values, each of arbitrary size: a context string, and key
+      material.  BLAKE3 in this mode can be used whenever a key
+      derviation function (KDF) is needed.  For example, BLAKE3 in key
+      derivation mode can replace HKDF.
 
-   TODO: Functionality: B3 modes, no need for other modes; cite HKDF,
-   HMAC
-
-   BLAKE3 can be a drop-in replacement for hash algorithms such as US
-   Secure Hash Algorithms SHA, SHA-based .. TODO
-
-   TODO: Performance: superfast and parallel, any platform, multi-core
-   and SIMD
-
-   TODO: Security: summary, bitlevel security
-
-   BLAKE3 is believed to be highly secure and have good performance on
-   any platform, software or hardware.
+   Further, all 3 modes can produce an output of arbitrary size.  The
+   hash mode can thus be used as an extendable-output-function (XOF);
+   the keyed hash mode can thus be used as a deterministic random bit
+   generator (DRBG).
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [RFC2119].
+
+
+
+
+
+
+
+Aumasson, et al.        Expires 28 September 2024               [Page 3]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
+
 
 2.  Conventions and Constants
 
@@ -162,13 +179,6 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
    Unkeyed hashing:  ..
 
    Keyed hashing:  ..
-
-
-
-Aumasson, et al.        Expires 27 September 2024               [Page 3]
-
-Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
-
 
    Key derivation:  ..
 
@@ -199,49 +209,50 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
    (Artwork only available as (unknown type): No external link
    available, see draft-blake3-00.html for artwork.)
 
-2.3.  Little-Endian Interpretation of Words as Bytes
+2.3.  Little-Endian Convention
 
-   All mathematical operations are on 32-bit words.
+   BLAKE3 performs operations on 32-bit words, and on vectors of words.
+   Vector indexing is zero-based; the first element of an n-element
+   vector "v" is v[0] and the last one is v[n - 1].  All elements is
+   denoted by v[0..n-1].
 
-   We may also perform operations on vectors of words.  Vector indexing
-   is zero-based; the first element of an n-element vector "v" is v[0]
-   and the last one is v[n - 1].  All elements is denoted by v[0..n-1].
+
+
+
+
+
+Aumasson, et al.        Expires 28 September 2024               [Page 4]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
+
 
    Byte (octet) streams are interpreted as words in little-endian order,
    with the least significant byte first.  Consider this sequence of
    eight hexadecimal bytes:
 
-           x[0..7] = 0x01 0x23 0x45 0x67 0x89 0xAB 0xCD 0xEF
+           x = 0x01 0x23 0x45 0x67 0x89 0xab 0xcd 0xef
 
    When interpreted as a 32-bit word from the beginning memory address,
-   x[0..3] has numerical value 0x67452301 or 1732584193.
-
-
-
-
-
-
-Aumasson, et al.        Expires 27 September 2024               [Page 4]
-
-Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
-
+   x contains two 32-bit words x[0] and x[1], respectively equal to
+   0x67452301 and 0xefcdab89 in hexadecimal, or 1732584193 and
+   4023233417 in decimal.
 
 2.4.  Initial Value (IV)
 
    The initial value (IV) of BLAKE3 is the same as SHA-256 IV, namely
    the 8-word IV[0..7]: [RFC6234].
 
-             6a09e667
-             bb67ae85
-             3c6ef372
-             a54ff53a
-             510e527f
-             9b05688c
-             1f83d9ab
-             5be0cd19
+             0x6a09e667
+             0xbb67ae85
+             0x3c6ef372
+             0xa54ff53a
+             0x510e527f
+             0x9b05688c
+             0x1f83d9ab
+             0x5be0cd19
 
    This IV is set to the initial chaining value of BLAKE3 when no key is
-   used.  Otherwise the supplied key is set as the initial chaining
+   used.  Otherwise the 256-bit key is set as the initial chaining
    value.
 
    This IV is also used as part of the compression function, where the
@@ -261,12 +272,50 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
                                  Table 1
 
+
+
+
+
+
+Aumasson, et al.        Expires 28 September 2024               [Page 5]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
+
+
 2.6.  Compression Function Flags
 
    The compression function of BLAKE3 uses a set of flags to control
    various aspects of its operation.  These flags are defined as
    follows:
 
+   *  CHUNK_START (0x01): This flag is set for the first block of each
+      chunk.
+
+   *  CHUNK_END (0x02): This flag signals the end of the chunk.  It is
+      set for the compression function of the last block within a chunk.
+      If a chunk contains only one block, that block sets both
+      CHUNK_START and CHUNK_END.
+
+   *  PARENT (0x04): In the binary tree structure, this flag is set on
+      parent nodes (non-chunk nodes).  It signals that the node combines
+      the 32-byte outputs of nodes in the tree (chunks of parents).  A
+      parent node always processes exactly 64 bytes, that is, the
+      concatenation of two 32-byte output values from a child node.
+
+   *  ROOT (0x08): This flag is assigned to the final node in the tree,
+      representing the root.  The root node may be a parent node, but
+      may also be a chunk processing leaf (if there is a single chunk).
+      In this latter case, only the last compression functoin sets the
+      ROOT flag.  In the case of a parent node, there is a single
+      compression function, which sets the ROOT flag.
+
+   *  KEYED_HASH (0x10): This flag is set to all compression functions
+      when using BLAKE3 in the keyed_hash mode.  In this mode, a 256-bit
+      key is used as initial chaining value instead of IV.
+
+   *  DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL (0x40): These
+      flags are used in BLAKE3's derive_key mode, where the context
+      string is first hashed TODOOO
 
 
 
@@ -277,7 +326,14 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 
 
-Aumasson, et al.        Expires 27 September 2024               [Page 5]
+
+
+
+
+
+
+
+Aumasson, et al.        Expires 28 September 2024               [Page 6]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
@@ -306,7 +362,7 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 3.  Compression Function
 
-   NOTE: Same as B2s
+   BLAKE3 iterates the compression function when processing chunks
 
 3.1.  Compression Function Input Values
 
@@ -316,15 +372,15 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
    m[0..15]  The message block processed, 16 words of 32 bits.
 
+   t[0..1]  A 64-bit counter whose lower-order 32-bit word is t[0] and
+      higher-order 32-bit word is t[1].
+
    len  32-bit word encoding the number of application data bytes in the
       block, at least 1 and at most 64.  That is, ad is equal to 64
       minus the number of padding bytes (which are set to zero).
 
    flag  32-bit word encoding the flags defined for a given compression
       function call, see Section 2.6.
-
-   t[0..1]  A 64-bit counter whose lower-order 32-bit word is t[0] and
-      higher-order 32-bit word is t[1].
 
    (Artwork only available as (unknown type): No external link
    available, see draft-blake3-00.html for artwork.)
@@ -333,7 +389,7 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 
 
-Aumasson, et al.        Expires 27 September 2024               [Page 6]
+Aumasson, et al.        Expires 28 September 2024               [Page 7]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
@@ -363,14 +419,12 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
    BLAKE3's compression function returns a new 8-word state, given as
    input an 8-word state h, a 16-word message m, a 2-word counter t, and
-   a word flag. arguments in XREF.  BLAKE3 does 8 rounds, numbered 0 to
-   7.
+   a word flag.
 
-   TODO: adapt pseudocode
+   BLAKE3's compression does 8 rounds, numbered 0 to 7.  Each round
+   includes 8 calls to the G functoin.
 
-
-
-
+   TODO: adapt pseudocode, deal with permutation
 
 
 
@@ -389,12 +443,14 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 
 
-Aumasson, et al.        Expires 27 September 2024               [Page 7]
+
+
+Aumasson, et al.        Expires 28 September 2024               [Page 8]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 
-       FUNCTION BLAKE3_F( h[0..7], m[0..15], t, f )
+       FUNCTION BLAKE3_F( h[0..7], m[0..15], t, len, flags )
        |
        |   // Initialize local 16-word vector v[0..15]
        |   v[0..7] := h[0..7]              // First half from state.
@@ -403,15 +459,13 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
        |   v[12] := v[12] ^ (t mod 2**w)   // Low word of the offset.
        |   v[13] := v[13] ^ (t >> w)       // High word.
        |
+           **TODO**
        |   IF f = TRUE THEN                // last block flag?
        |   |   v[14] := v[14] ^ 0xFF..FF   // Invert all bits.
        |   END IF.
        |
        |   // Cryptographic mixing
-       |   FOR i = 0 TO 7 DO           // Ten or twelve rounds.
-       |   |
-       |   |   // Message word selection permutation for this round.
-       |   |   s[0..15] := SIGMA[0..15]
+       |   FOR i = 0 TO 7 DO           // 8 rounds.
        |   |
        |   |   v := G( v, 0, 4,  8, 12, m[s[ 0]], m[s[ 1]] )
        |   |   v := G( v, 1, 5,  9, 13, m[s[ 2]], m[s[ 3]] )
@@ -435,30 +489,60 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 4.  Tree Mode of Operation
 
-   Intro to tree processing and parallelism
+   Intro to tree processing; chunks as leaves; explain padding with
+   zeros
 
-4.1.  Data padding
+4.1.  Chunk Processing
+
+   BLAKE3's chunk processing divides the BLAKE3 input into 1024-byte
+   chunks, which will be leaves of a binary tree.  The last chunk will
+   be of less than 1024 bytes if the message byte length is not a
+   multiple of 1024.
 
 
 
-
-
-
-
-Aumasson, et al.        Expires 27 September 2024               [Page 8]
+Aumasson, et al.        Expires 28 September 2024               [Page 9]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
 
-4.2.  Chunk Processing
+   Chunks are ivided into 64-byte blocks.  The last block of the last
+   chunk may be shorter, but not empty, unless the entire input is
+   empty.  If necessary, the last block is padded with zeros to be
+   64-byte.
 
-   BLAKE3's chunk processing divides the BLAKE3 input into 1024-byte
-   chunks.  These chunks are further split into 16-word blocks (64 bytes
-   each).  For each chunk, a series of flags in the compression function
-   denote its specific role and position within the overall data
-   structure.
+   Each chunk is processed by iterating the compression function
+   (1024/64 = 16 times for a full 1024-byte chunk) to process 64-byte
+   blocks, each parsed as 16 32-bit little-endian words.  The output of
+   each compression function is h[0..7], the 8-word truncated output,
+   which is the input of the next compression function (and the output
+   of the chunk processing for the last compression function call).
 
-   The flags used in chunk processing are as follows:
+   Compression function input arguments are set as follows:
+
+   h[0..7]  For the first block of a chunk, this is set either to the
+      key, or to the IV if no key is defined.  For subsequent block, h
+      is set to the output of the previous block's compression.
+
+   m[0..15]  This is the block processed by the compression function.
+
+   t[0..1]  The counter t for each block is the chunk index, that is, 0
+      for all blocks in the first chunk, 1 for all blocks in the second
+      chunk, and so on.
+
+   len  The block length is set to 64 for all blocks except the last
+      block of a chunk, where it is the number of data bytes (thus
+      excluding padding zeros.)
+
+   flag  The first block of each chunk sets the CHUNK_START flag (cf.
+      Table 3), and the last block of each chunk sets the CHUNK_END
+      flag.  If a chunk contains only one block, that block sets both
+      CHUNK_START and CHUNK_END.  If a chunk is the root of its tree,
+      the last block of that chunk also sets the ROOT flag.  Multiple
+      flags may thus be set.
+
+   Can have multiple flags.  The flags used in chunk processing are as
+   follows:
 
    *  CHUNK_START (0x01): This flag is set for the first block of each
       chunk.
@@ -470,16 +554,46 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
       result of combining two child chunks or nodes in the tree.  A
       parent node always processes exactly 64 bytes.
 
+
+
+
+Aumasson, et al.        Expires 28 September 2024              [Page 10]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
+
+
    *  ROOT (0x08): This flag is assigned to the final node in the tree,
-      representing the root.  The root node is a particular parent node
+      representing the root.  The root node is a particular parent node.
 
-   *  Keyed Hash (0x10), Derive Key Context (0x20), and Derive Key
-      Material (0x40): These flags are used in BLAKE3's keyed hashing
-      and key derivation modes, not in the standard hash mode.  They
-      signal specific processing contexts as per the mode of operation.
+   *  KEYED_HASH (0x10), DERIVE_KEY_CONTEXT (0x20), and
+      DERIVE_KEY_MATERIAL (0x40): These flags are used in BLAKE3's keyed
+      hashing and key derivation modes, not in the standard hash mode.
+      They signal specific processing contexts as per the mode of
+      operation.
 
-4.3.  Binary Tree Structure
+   More than one flag may be set, for ex..
 
+4.2.  Binary Tree Processing
+
+   BLAKE3 operates in a parallel tree mode using a binary tree
+   structure.  The input data is divided into fixed-size chunks of 1024
+   bytes, and each chunk is processed independently.  Chunks are then
+   hashed into 256-bit (32-byte) nodes in the binary tree.
+
+   The tree's leaves represent individual chunk hashes, and internal
+   nodes are formed by hashing the concatenation of their children's
+   hashes using the BLAKE3 compression function.  Each node uses a
+   unique flag to indicate its position (e.g., chunk start, chunk end,
+   parent, and root).
+
+   The root of this tree represents the final hash output.  This
+   approach leverages parallel processing capabilities, as each chunk
+   can be processed independently and concurrently.  The use of flags in
+   the compression function ensures the proper structuring and
+   differentiation of tree components, maintaining the security and
+   integrity of the hash output.
+
+   Describe flags, parent/root logic.
 
 5.  Applications
 
@@ -493,18 +607,20 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
    TODO
 
-8.  IANA Considerations
-
-   This memo includes no request to IANA.
 
 
 
 
 
-Aumasson, et al.        Expires 27 September 2024               [Page 9]
+
+Aumasson, et al.        Expires 28 September 2024              [Page 11]
 
 Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
 
+
+8.  IANA Considerations
+
+   This memo includes no request to IANA.
 
 9.  Security Considerations
 
@@ -547,20 +663,21 @@ Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
               (SHA and SHA-based HMAC and HKDF)", RFC 6234, May 2011,
               <https://www.rfc-editor.org/rfc/rfc6234>.
 
+
+
+
+
+
+
+Aumasson, et al.        Expires 28 September 2024              [Page 12]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
+
+
    [RFC7693]  Saarinen, M-J. and J-P. Aumasson, "The BLAKE2
               Cryptographic Hash and Message Authentication Code (MAC)",
               RFC 7693, November 2015,
               <https://www.rfc-editor.org/rfc/rfc7693>.
-
-
-
-
-
-
-Aumasson, et al.        Expires 27 September 2024              [Page 10]
-
-Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
-
 
 Appendix A.  BLAKE3 Implementations
 
@@ -605,19 +722,19 @@ Appendix B.  Example of BLAKE3 Computation
                   F34600FB D7BC20FB EB452A7B ECE1AA40
 
    (i=7)  v[16] = BE851B2D A85F6358 81E6FC3B 0BB28000 FA55A33A 87BE1FAD
+
+
+
+Aumasson, et al.        Expires 28 September 2024              [Page 13]
+
+Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
+
+
                   4119370F 1E2261AA A1318FD3 F4329816 071783C2 6E536A8D
                   9A81A601 E7EC80F1 ACC09948 F849A584
 
    (i=8)  v[16] = 07E5B85A 069CC164 F9DE3141 A56F4680 9E440AD2 9AB659EA
                   3C84B971 21DBD9CF 46699F8C 765257EC AF1D998C 75E4C3B6
-
-
-
-Aumasson, et al.        Expires 27 September 2024              [Page 11]
-
-Internet-Draft  The BLAKE3 Cryptographic Hashing Primiti      March 2024
-
-
                   523878DC 30715015 397FEE81 4F1FA799
 
    (i=9)  v[16] = 435148C4 A5AA2D11 4B354173 D543BC9E BDA2591C BF1D2569
@@ -664,9 +781,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-Aumasson, et al.        Expires 27 September 2024              [Page 12]
+Aumasson, et al.        Expires 28 September 2024              [Page 14]
