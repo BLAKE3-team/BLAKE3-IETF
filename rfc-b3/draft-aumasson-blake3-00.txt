@@ -91,7 +91,7 @@ Table of Contents
    6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
    7.  Security Considerations . . . . . . . . . . . . . . . . . . .  14
    8.  Informative References  . . . . . . . . . . . . . . . . . . .  14
-   Appendix A.  BLAKE3 Implementations . . . . . . . . . . . . . . .  15
+   Appendix A.  Implementation status  . . . . . . . . . . . . . . .  15
    Appendix B.  Example of BLAKE3 Computation  . . . . . . . . . . .  15
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
 
@@ -292,7 +292,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
        2,  6,  3, 10,  7,  0,  4, 13,  1, 11, 12,  5,  9, 14, 15,  8
 
    For example, after applying the permutation to an array v[0..15]
-   consisting of elements v[0], v[1], ..., v[15], the permutated array
+   consisting of elements v[0], v[1], ..., v[15], the permuted array
    shall consist of v[2] at the first position, v[6] at the second
    position, and so on.
 
@@ -321,7 +321,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
       tree, representing the root, and only for such nodes.  The root
       node may be a parent node, but may also be the last compression of
       a chunk processing leaf (if there is a single chunk).  In this
-      latter case, only the last compression functoin sets the ROOT
+      latter case, only the last compression function sets the ROOT
       flag.  In the case of a parent node, there is a single compression
       function, which sets the ROOT flag.
 
@@ -522,7 +522,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
    be of less than 1024 bytes if the message byte length is not a
    multiple of 1024.
 
-   Chunks are ivided into 64-byte blocks.  The last block of the last
+   Chunks are divided into 64-byte blocks.  The last block of the last
    chunk may be shorter, but not empty, unless the entire input is
    empty.  If necessary, the last block is padded with zeros to be
    64-byte.
@@ -658,7 +658,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
    provides input data via multiple repeated calls to an "update"
    function, as opposed to a single call providing all the input data.
    Such an API typically consists of an "init" function call to
-   initialize an internal contexte state, followed by a series of
+   initialize an internal context state, followed by a series of
    "update" function calls, eventually followed by a "finalize" function
    call that that returns the output.
 
@@ -791,12 +791,16 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
               Hashing and Proof-of-Work Applications", RFC 9106,
               September 2021, <https://www.rfc-editor.org/rfc/rfc9106>.
 
-Appendix A.  BLAKE3 Implementations
+Appendix A.  Implementation status
 
    Reference implementations of BLAKE3 in the C and Rust languages are
    available online at https://github.com/BLAKE3-team/BLAKE3/. These
    implementations include parallel implementations leveraging multi-
    threading and different SIMD processing technologies.
+
+   At the time of writing, a number of prominent projects have
+   integrated BLAKE3, due to its combination of security, speed, and
+   versatility (see the README on https://github.com/BLAKE3-team/BLAKE3.
 
    For the sake of document size, these implementations are not copied
    into the present document.  However, they are expected to remain
@@ -831,16 +835,16 @@ Appendix B.  Example of BLAKE3 Computation
                   3025D276 57D04DE4 994BACF0 F0982759 F17EE300 D48FC2D5
                   DC854C10 523898A9 C03A0F89 47D6CD88
 
-   (i=5)  v[16] = C4AA2DDB 111343A3 D54A700A 574A00A9 857D5A48 B1E11989
-                  6F5C52DF DD2C53A3 678E5F8E 9718D4E9 622CB684 92976076
-                  0E41A517 359DC2BE 87A87DDD 643F9CEC
-
 
 
 Aumasson, et al.        Expires 29 September 2024              [Page 15]
 
 Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
+
+   (i=5)  v[16] = C4AA2DDB 111343A3 D54A700A 574A00A9 857D5A48 B1E11989
+                  6F5C52DF DD2C53A3 678E5F8E 9718D4E9 622CB684 92976076
+                  0E41A517 359DC2BE 87A87DDD 643F9CEC
 
    (i=6)  v[16] = 3453921C D7595EE1 592E776D 3ED6A974 4D997CB3 DE9212C3
                   35ADF5C9 9916FD65 96562E89 4EAD0792 EBFC2712 2385F5B2
@@ -883,6 +887,17 @@ Authors' Addresses
    Samuel Neves
 
 
+
+
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 16]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
    Jack O'Connor
    SpaceX
    356 167th Ave NE
@@ -892,23 +907,8 @@ Authors' Addresses
    URI:   https://jacko.io
 
 
-
-Aumasson, et al.        Expires 29 September 2024              [Page 16]
-
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
-
-
    Zooko Wilcox-O'Hearn
    Zcash
-
-
-
-
-
-
-
-
-
 
 
 

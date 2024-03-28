@@ -966,7 +966,7 @@
 
 </references>
 
-<section title="BLAKE3 Implementations" anchor="b3src">
+<section title="Implementation status" anchor="b3src">
 
     <t>
     Reference implementations of BLAKE3 in the C and Rust languages are
@@ -974,6 +974,13 @@
     target="https://github.com/BLAKE3-team/BLAKE3/" />. These
     implementations include parallel implementations leveraging
     multi-threading and different SIMD processing technologies.
+    </t>
+
+    <t>
+    At the time of writing, a number of prominent projects have
+    integrated BLAKE3, due to its combination of security, speed, and
+    versatility (see the README on <eref
+    target="https://github.com/BLAKE3-team/BLAKE3" />.
     </t>
 
     <t>
