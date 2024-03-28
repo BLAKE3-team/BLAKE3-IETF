@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="US-ASCII"?>
-<!--
-    Created: TBD
-
-    Use "xml2rfc" to create nroff or txt output.
-    I use 4-space tabs for clarity when organizing XML elements.
--->
 <!DOCTYPE rfc>
 
 <?rfc strict="yes" ?>
@@ -15,8 +9,11 @@
 <?rfc compact="yes" ?>
 <?rfc subcompact="no" ?>
 
-<rfc category="info" docName="draft-blake3-00" ipr="trust200902">
+<rfc category="info" docName="draft-blake3-00" ipr="trust200902" submissionType="IETF">
 <front>
+<!--
+    TODO: update date
+-->
     <title>The BLAKE3 Hashing Framework</title>
 
     <author fullname="Jean-Philippe Aumasson"
@@ -79,7 +76,7 @@
         </address>
     </author>
 
-    <date month="March" year="2024" />
+    <date month="March" day="28" year="2024" />
 
     <area>General</area>
 
@@ -93,7 +90,8 @@
     <keyword>Message Authentication Code</keyword>
 
 <abstract>
-<t> This document specifies the cryptographic hashing primitive BLAKE3,
+    <t> 
+    This document specifies the cryptographic hashing primitive BLAKE3,
     a secure algorithm designed to be fast and highly parallelizable.
     Apart from the standard hashing functionality, BLAKE3 can serve to
     realize the following cryptographic functionalities:
@@ -112,7 +110,7 @@
     designed by Jack O'Connor, Jean-Philippe Aumasson, Samuel Neves, and
     Zooko Wilcox-O'Hearn.
     BLAKE3 is an evolution from its predecessors <xref target="BLAKE" /> and
-    <xref target="BLAKE2" />. BLAKE2 is widely used in open-source
+    <xref target="BLAKE2" /><xref target="RFC7693" />. BLAKE2 is widely used in open-source
     software and in proprietary software. For example, the Linux kernel
     (from version 5.17) uses BLAKE2 in its cryptographic
     pseudorandom generator, and the WireGuard secure tunnel protocol
@@ -142,27 +140,30 @@
     <t> 
     BLAKE3 was also designed to instantiate multiple cryptographic
     primitives, to offer a simpler and more efficient alternative to
-    dedicated modes and algorithms. These primitives include:
+    dedicated legacy modes and algorithms such as those in <xref
+    target="RFC6234" />. These primitives include:
 
     <list style="hanging">
-        <t hangText="Unkeyed hashing (hash):"> This is the general-purpose
-        hashing mode, taking a single input of arbitrary size. BLAKE3 in
-        this mode can be used whenever a preimage- or
-        collision-resistant hash function is needed, and to instantiate
-        random oracles in cryptographic protocols. For example, BLAKE3
-        can replace SHA-3, as well as any SHA-2 instance.
+        <t hangText="Unkeyed hashing (hash):"> 
+        This is the general-purpose hashing mode, taking a single input
+        of arbitrary size. BLAKE3 in this mode can be used whenever a
+        preimage- or collision-resistant hash function is needed, and to
+        instantiate random oracles in cryptographic protocols. For
+        example, BLAKE3 can replace SHA-3, as well as any SHA-2
+        instance.
         </t>
-        <t hangText="Keyed hashing (keyed_hash):"> The keyed mode takes
-        a 32-byte key, in addition to the arbitrary size input. BLAKE3
-        in this mode can be used whenever a pseudorandom function (PRF)
-        or message authentication code (MAC) is needed. For example,
-        keyed BLAKE3 can replace HMAC.
+        <t hangText="Keyed hashing (keyed_hash):"> 
+        The keyed mode takes a 32-byte key, in addition to the arbitrary
+        size input. BLAKE3 in this mode can be used whenever a
+        pseudorandom function (PRF) or message authentication code (MAC)
+        is needed. For example, keyed BLAKE3 can replace HMAC.
         </t>
-        <t hangText="Key derivation (derive_key):"> The key derivation
-        mode takes two input values, each of arbitrary size: a context
-        string, and key material. BLAKE3 in this mode can be used
-        whenever a key derviation function (KDF) is needed. For example,
-        BLAKE3 in key derivation mode can replace HKDF.
+        <t hangText="Key derivation (derive_key):">
+        The key derivation mode takes two input values, each of
+        arbitrary size: a context string, and key material. BLAKE3 in
+        this mode can be used whenever a key derviation function (KDF)
+        is needed. For example, BLAKE3 in key derivation mode can
+        replace HKDF.
         </t>
     </list>
     </t>
@@ -203,69 +204,93 @@
     level (or layer) of the tree.
     </t>
 
-</section>
 
-<t> The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
-    document are to be interpreted as described in <xref target="RFC2119" />.
-    </t>
+</section>
 </section>
 
 <!-- **************************************************   -->
 
 <section title="Conventions and Constants" anchor="conventions">
 
+    <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+    document are to be interpreted as described in <xref target="RFC2119" />.
+    </t>
+
 <section title="Arithmetic Notation">
 
-<t> For real-valued x we define the following functions:
+    <t> 
+    For real-valued x we define the following functions:
     <list style="hanging">
         <t hangText="   floor(x)">
-            Floor, the largest integer less than or equal to x.</t>
+            Floor, the largest integer less than or equal to x.
+        </t>
         <t hangText="    ceil(x)">
-            Ceiling, the smallest integer greater than or equal to x.</t>
+            Ceiling, the smallest integer greater than or equal to x.
+        </t>
         <t hangText="    frac(x)">
-            Positive fractional part of x, frac(x) = x - floor(x).</t>
-    </list></t>
+            Positive fractional part of x, frac(x) = x - floor(x).
+        </t>
+    </list>
+    </t>
 
-<t> Operator notation in pseudocode:
+    <t> 
+    Operator notation in pseudocode:
     <list style="hanging">
         <t hangText="     2**n =">
-            2 to the power "n". 2**0=1, 2**1=2, 2**2=4, 2**3=8, etc.</t>
+            2 to the power "n". 2**0=1, 2**1=2, 2**2=4, 2**3=8, etc.
+        </t>
+
         <t hangText="    a ^ b =">
-            Bitwise exclusive-or operation between "a" and "b".</t>
+            Bitwise exclusive-or operation between "a" and "b".
+        </t>
         <t hangText="  a mod b =">
-            Remainder "a" modulo "b", always in range [0, b-1].</t>
+            Remainder "a" modulo "b", always in range [0, b-1].
+        </t>
         <t hangText="   x >> n =">
-            floor(x / 2**n). Logical shift "x" right by "n" bits.</t>
+            floor(x / 2**n). Logical shift "x" right by "n" bits.
+        </t>
         <t hangText="   x &lt;&lt; n =">
-            (x * 2**n) mod (2**w). Logical shift "x" left by "n".</t>
+            (x * 2**n) mod (2**w). Logical shift "x" left by "n".
+        </t>
         <t hangText="  x >>> n ="> (x >> n) ^ (x &lt;&lt; (w - n)).
-            Rotate "x" right by "n".</t>
-    </list></t>
-<figure><artwork><![CDATA[
-]]></artwork></figure>
+            Rotate "x" right by "n".
+        </t>
+    </list>
+    </t>
+
 </section>
 
 
 <section title="Little-Endian Convention">
 
-    <t> BLAKE3 performs operations on 32-bit words, and on vectors of
-    words.  Vector indexing is zero-based; the first element of an
-    n-element vector "v" is v[0] and the last one is v[n - 1]. All
-    elements is denoted by v[0..n-1].</t>
+    <t>
+    BLAKE3 performs operations on 32-bit words, and on arrays of
+    words. Array indexing is zero-based; the first element of an
+    n-element array "v" is v[0] and the last one is v[n - 1]. All
+    elements is denoted by v[0..n-1].
+    </t>
 
-    <t>Byte (octet) streams are interpreted as words in little-endian
+    <t>
+    Byte (octet) streams are interpreted as words in little-endian
     order, with the least significant byte first.  Consider this
-    sequence of eight hexadecimal bytes:</t>
+    sequence of eight hexadecimal bytes:
+    </t>
 
-<figure><artwork><![CDATA[
+    <figure>
+    <artwork>
+    <![CDATA[
         x = 0x01 0x23 0x45 0x67 0x89 0xab 0xcd 0xef
-]]></artwork></figure>
+    ]]>
+    </artwork>
+    </figure>
 
-<t>When interpreted as a 32-bit word from the beginning memory
-    address, x contains two 32-bit words x[0] and x[1], respectively
-    equal to 0x67452301 and 0xefcdab89 in hexadecimal, or 1732584193 and
-    4023233417 in decimal.</t>
+    <t>
+    When interpreted as a 32-bit word from the beginning memory address,
+    x contains two 32-bit words x[0] and x[1], respectively equal to
+    0x67452301 and 0xefcdab89 in hexadecimal, or 1732584193 and
+    4023233417 in decimal.
+    </t>
 
 </section>
 
@@ -273,75 +298,58 @@
 <section title="Initial Value (IV)">
 
 
-    <t> The initial value (IV) of BLAKE3 is the same as SHA-256 IV,
-    namely the 8-word IV[0..7]: <xref target="RFC6234" />.</t> 
+    <t>
+    The initial value (IV) of BLAKE3 is the same as SHA-256 IV,
+    namely the 8-word IV[0..7]: <xref target="RFC6234" />.
+    </t> 
 
-     <figure>
-        <artwork type='text/ascii-art'>
-          0x6a09e667
-          0xbb67ae85
-          0x3c6ef372
-          0xa54ff53a
-          0x510e527f
-          0x9b05688c
-          0x1f83d9ab
-          0x5be0cd19
-        </artwork>
-      </figure>
+    <figure>
+    <artwork type='text/ascii-art'>
+      0x6a09e667
+      0xbb67ae85
+      0x3c6ef372
+      0xa54ff53a
+      0x510e527f
+      0x9b05688c
+      0x1f83d9ab
+      0x5be0cd19
+    </artwork>
+    </figure>
 
-      <t>This IV is set to the initial chaining value of BLAKE3 when no key is
-      used. Otherwise the 256-bit key is set as the initial chaining
-      value.</t>
+    <t>
+    This IV is set to the initial chaining value of BLAKE3 when no key
+    is used. Otherwise the 256-bit key is set as the initial chaining
+    value.
+    </t>
 
-      <t>This IV is also used as part of the compression function, where
-      the first four words, IV[0..3] are copied into the 16-word local
-      initial state, at positions v[8..11].</t>
-
-
+    <t>This IV is also used as part of the compression function, where
+    the first four words, IV[0..3] are copied into the 16-word local
+    initial state, at positions v[8..11].
+    </t>
 
 </section>
 
 <section title="Message Word Permutation" anchor="permutation">
 
     <t>
-        BLAKE3 uses a permutation of the 16 indices (0 to 15). This permutation is defined as follows:
-
+    BLAKE3 uses a permutation of the 16 indices (0 to 15). This
+    permutation is defined as follows, where the second line shows the
+    index of the word move to the position indexed on the first line: 
     </t>
-    <texttable>
-        <ttcol>0</ttcol>
-        <ttcol>1</ttcol>
-        <ttcol>2</ttcol>
-        <ttcol>3</ttcol>
-        <ttcol>4</ttcol>
-        <ttcol>5</ttcol>
-        <ttcol>6</ttcol>
-        <ttcol>7</ttcol>
-        <ttcol>8</ttcol>
-        <ttcol>9</ttcol>
-        <ttcol>10</ttcol>
-        <ttcol>11</ttcol>
-        <ttcol>12</ttcol>
-        <ttcol>13</ttcol>
-        <ttcol>14</ttcol>
-        <ttcol>15</ttcol>
-        <c>2</c>
-        <c>6</c>
-        <c>3</c>
-        <c>10</c>
-        <c>7</c>
-        <c>0</c>
-        <c>4</c>
-        <c>13</c>
-        <c>1</c>
-        <c>11</c>
-        <c>12</c>
-        <c>5</c>
-        <c>9</c>
-        <c>14</c>
-        <c>15</c>
-        <c>8</c>
-    </texttable>
 
+    <figure>
+    <artwork type='text/ascii-art'>
+    0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15
+    2,  6,  3, 10,  7,  0,  4, 13,  1, 11, 12,  5,  9, 14, 15,  8
+    </artwork>
+    </figure>
+
+    <t>
+    For example, after applying the permutation to an array v[0..15]
+    consisting of elements v[0], v[1], ..., v[15], the permutated array
+    will consist of v[2] at the first position, v[6] at the second
+    position, and so on.
+    </t>
 
 </section>
 
@@ -353,55 +361,64 @@
         defined as follows: 
     </t>
     <t>
-        <list style="symbols">
-            <t>CHUNK_START (0x01): This flag is set for the first block
-            of each chunk.</t>
+    <list style="hanging">
+        <t hangText="CHUNK_START (0x01):">
+        This flag is set for the first block of each chunk.
+        </t>
 
-            <t>CHUNK_END (0x02): This flag signals the end of the chunk.
-            It is set for the compression function of the last block
-            within a chunk. If a chunk contains only one block, that
-            block sets both CHUNK_START and CHUNK_END.</t>
+        <t hangText="CHUNK_END (0x02):">
+        This flag signals the end of the chunk.  It is set for the
+        compression function of the last block within a chunk. If a
+        chunk contains only one block, that block sets both CHUNK_START
+        and CHUNK_END.
+        </t>
 
-            <t>PARENT (0x04): In the binary tree structure, this flag is
-            set on parent nodes (non-chunk nodes). It signals that
-            the node combines the 32-byte outputs of nodes in the tree
-            (chunks of parents). A parent node always processes exactly 64
-            bytes, that is, the concatenation of two 32-byte output
-            values from a child node.
-            </t>
+        <t hangText="PARENT (0x04):">
+        In the binary tree structure, this flag is set on parent nodes
+        (non-chunk nodes). It signals that the node combines the 32-byte
+        outputs of nodes in the tree (chunks of parents). A parent node
+        always processes exactly 64 bytes, that is, the concatenation of
+        two 32-byte output values from a child node.
+        </t>
 
-            <t>ROOT (0x08): This flag is assigned to the final node in
-            the tree, representing the root. The root node may be a
-            parent node, but may also be a chunk processing leaf (if
-            there is a single chunk). In this latter case, only the last
-            compression functoin sets the ROOT flag. In the case of a
-            parent node, there is a single compression function, which
-            sets the ROOT flag.
-            </t>
+        <t hangText="ROOT (0x08):">
+        This flag is assigned to the final node in the tree,
+        representing the root. The root node may be a parent node, but
+        may also be a chunk processing leaf (if there is a single
+        chunk). In this latter case, only the last compression functoin
+        sets the ROOT flag. In the case of a parent node, there is a
+        single compression function, which sets the ROOT flag.
+        </t>
 
-            <t>KEYED_HASH (0x10): This flag is set to all compression
-            functions when using BLAKE3 in the keyed_hash mode. In this
-            mode, a 256-bit key is used as initial chaining value
-            instead of IV.
-            </t>
-            <t>DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL (0x40):
-            These flags are used in BLAKE3's derive_key mode, where the
-            context string is first hashed by a (non-keyed) BLAKE3
-            instance setting the DERIVE_KEY_CONTEXT to all compression
-            functions; the 32-byte output is then used as the key of a
-            keyed BLAKE3 instance hashing the key material, and setting
-            DERIVE_KEY_MATERIAL (but not DERIVE_KEY_CONTEXT_ to all
-            compression functions.</t>
-        </list>
+        
+        <t hangText="KEYED_HASH (0x10):">
+        This flag is set to all compression functions when using BLAKE3
+        in the keyed_hash mode. In this mode, a 256-bit key is used as
+        initial chaining value instead of IV.
+        </t>
+
+        <t hangText="DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL
+        (0x40):">
+        These flags are used in BLAKE3's derive_key mode, where the
+        context string is first hashed by a (non-keyed) BLAKE3
+        instance setting the DERIVE_KEY_CONTEXT to all compression
+        functions; the 32-byte output is then used as the key of a
+        keyed BLAKE3 instance hashing the key material, and setting
+        DERIVE_KEY_MATERIAL (but not DERIVE_KEY_CONTEXT_ to all
+        compression functions.</t>
+    </list>
     </t>
 
-    <t>If two or more flags are set, then all their respective bits
+    <t>
+    If two or more flags are set, then all their respective bits
     appear in the flags compression function input. This combination can
     be implemented as an XOR or integer addition between the flags. For
     example, if CHUNK_START and KEYED_HASH are set, then the flags input
     word will be the 32-bit word 0x00000011, where 0x11 = 0x10 + 0x01.
     </t>
 </section>
+    
+
 
 </section>
 
@@ -439,8 +456,8 @@
 <section title="Quarter-Round Function G">
 
 <t> The G primitive function mixes two input words "x" and "y" into four
-    words indexed by "a", "b", "c", and "d" in the working vector v[0..15].
-    The full modified vector is returned. 
+    words indexed by "a", "b", "c", and "d" in the working array v[0..15].
+    The full modified array is returned. 
 </t>
 
 <figure><artwork><![CDATA[
@@ -467,13 +484,13 @@
     16-word message m, a 2-word counter t, a data length word len, and a
     word flags (as a bit field).</t>
 
-    <t>BLAKE3's compression does 8 rounds, numbered 0 to 7. Each round
+    <t>BLAKE3's compression does 7 rounds, numbered 0 to 6. Each round
     includes 8 calls to the G functoin.</t>
 
 <figure><artwork><![CDATA[
     FUNCTION BLAKE3_COMPRESS( h[0..7], m[0..15], t, len, flags )
     |
-    |   // Initialize local 16-word vector v[0..15]
+    |   // Initialize local 16-word array v[0..15]
     |   v[0..7] := h[0..7]              // First half from state.
     |   v[8..11] := IV[0..3]            // Second half from IV.
     |
@@ -483,7 +500,7 @@
     |   v[15] :=  flags                 // Flags.
     |
     |   // Cryptographic mixing
-    |   FOR i = 0 TO 7 DO               // 8 rounds.
+    |   FOR i = 0 TO 6 DO               // 7 rounds.
     |   |
     |   |   v := G( v, 0, 4,  8, 12, m[ 0], m[ 1] )
     |   |   v := G( v, 1, 5,  9, 13, m[ 2], m[ 3] )
@@ -500,8 +517,9 @@
     |   END FOR
     |
     |   // Compute the output state (untruncated)
-    |   FOR i = 0 TO 15 DO 
-    |   |   h[i] := h[i] ^ v[i] ^ v[i + 8]
+    |   FOR i = 0 TO 7 DO 
+    |   |   v[i] := v[i] ^ v[i + 8] 
+    |   |   v[i + 8] := v[i + 8] ^ h[i] 
     |   END FOR.
     |
     |   RETURN v
@@ -511,18 +529,27 @@
 
     <t>When processing chunks or computing parent nodes, the output is
     always truncated to the first 8 words v[0..7]. When computing the
-    output value, all the 16 words may be used (see the Extendable
-    Output section).
+    output value, all the 16 words may be used (see <xref target="xof" />).
     </t>
 
     <t>The permutation of words may be implemented by pre-computing the
     indices corresponding to 0, 1, 2, ..., 7 iterations of the
-    permutation, and then applying each of these 8 permutations to the
-    initial message at each of the 8 rounds. These 8 permutations would
+    permutation, and then applying each of these 7 permutations to the
+    initial message at each of the 7 rounds. These 7 permutations would
     then be:
-
-    TODO
     </t>
+
+    <figure>
+    <artwork type='text/ascii-art'>
+     0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15
+     2,  6,  3, 10,  7,  0,  4, 13,  1, 11, 12,  5,  9, 14, 15,  8
+     3,  4, 10, 12, 13,  2,  7, 14,  6,  5,  9,  0, 11, 15,  8,  1
+    10,  7, 12,  9, 14,  3, 13, 15,  4,  0, 11,  2,  5,  8,  1,  6
+    12, 13,  9, 11, 15, 10, 14,  8,  7,  2,  5,  3,  0,  1,  6,  4
+     9, 14, 11,  5,  8, 12, 15,  1, 13,  3,  0, 10,  2,  6,  4,  7
+    11, 15,  5,  0,  1,  9,  8,  6, 14, 10,  2, 12,  3,  4,  7, 13
+    </artwork>
+    </figure>
 
 </section>
 </section>
@@ -532,10 +559,12 @@
 <section anchor="treemode" title="Tree Mode of Operation">
 
     <t>The following describes BLAKE3's tree mode of operation, first
-    specifying the processing of input data as chunks (Chunk Processing
-    section), then describing how the binary hash tree structure is
-    formed for a given number of chunks (Binary Tree Processing
-    section).
+    specifying the processing of input data as chunks in <xref
+    target="chunkspro" />, then describing how the binary hash tree structure is
+    formed for a given number of chunks in <xref target="treepro" />.
+    Finally, <xref target="xof" /> describes how BLAKE3 can produce an
+    output of arbitrary length without committing to a length when
+    starting processing data.
     </t>
 
 <section anchor="chunkspro" title="Chunk Processing">
@@ -562,7 +591,7 @@
         compression function call).
     </t>
     <t>
-        Compression function input arguments are set as follows: 
+    Compression function input arguments are set as follows: 
     <list style="hanging">
         <t hangText="    h[0..7]">
         For the first block of a chunk, this is set either to the key,
@@ -588,46 +617,22 @@
     </list>
     </t>
     <t>
-        Can have multiple flags.
-        The flags used in chunk processing are as follows:
-        <list style="symbols">
-            <t>CHUNK_START (0x01): This flag is set for the first block
-            of each chunk.</t>
-
-            <t>CHUNK_END (0x02): This flag signals the end of the chunk.</t>
-
-            <t>PARENT (0x04): In the binary tree structure, this flag is
-            used on internal nodes (non-leaf nodes). It signals that
-            the node is a result of combining two child chunks or nodes
-            in the tree. A parent node always processes exactly 64
-            bytes.
-            </t>
-
-            <t>ROOT (0x08): This flag is assigned to the final node in
-            the tree, representing the root. The root node is a
-            particular parent node.
-            </t>
-
-            <t>KEYED_HASH (0x10), DERIVE_KEY_CONTEXT (0x20), and
-            DERIVE_KEY_MATERIAL (0x40): These flags are used in BLAKE3's keyed
-            hashing and key derivation modes, not in the standard hash
-            mode. They signal specific processing contexts as per the
-            mode of operation.</t>
-        </list>
-    </t>
-    <t>
-        More than one flag may be set, for ex..
+    Flags are set as specified in <xref target="flags" />.  More than
+    one flag may be set, for example the first compression of the first
+    chunk will have CHUNK_START and KEYED_HASH set. If a chunk is only
+    64-byte, then its only compression will in addition have the
+    CHUNK_END flag set. 
     </t>
 
 </section>
 
-<section anchor="treestruct" title="Binary Tree Processing">
+<section anchor="treepro" title="Binary Tree Processing">
 
     <t>
-        BLAKE3 operates in a parallel tree mode using a binary tree
-        structure. The input data is divided into fixed-size chunks of
-        1024 bytes, and each chunk is processed independently. Chunks
-        are then hashed into 256-bit (32-byte) nodes in the binary tree.
+    BLAKE3 operates in a parallel tree mode using a binary tree
+    structure. The input data is divided into fixed-size chunks of 1024
+    bytes, and each chunk is processed independently. Chunks are then
+    hashed into 256-bit (32-byte) nodes in the binary tree.
     </t>
     <t>
         The tree's leaves represent individual chunk hashes, and
@@ -642,11 +647,15 @@
         chunk can be processed independently and concurrently. The use
         of flags in the compression function ensures the proper
         structuring and differentiation of tree components, maintaining
-        the security and integrity of the hash output.
+        the soundness of the hash structure.
     </t>
     <t>
         Describe flags, parent/root logic.
     </t>
+
+</section>
+
+<section anchor="xof" title="Extendable Output">
 
 </section>
 
@@ -669,14 +678,6 @@
 </section>
 
 
-
-<section anchor="Acknowledgements" title="Acknowledgements">
-
-<t> 
-    TODO
-</t>
-
-</section>
 
 <section anchor="IANA" title="IANA Considerations">
 
@@ -767,17 +768,6 @@
     <seriesInfo name="BCP" value="14" />
 </reference>
 
-<reference anchor="RFC6151">
-    <front>
-    <title> Updated Security Considerations for the MD5 Message-Digest
-            and the HMAC-MD5 Algorithms</title>
-    <author fullname="Sean Turner" initials="S" surname="Turner" />
-    <author fullname="Lily Chen" initials="L" surname="Chen" />
-    <date month="March" year="2011" />
-    </front>
-    <seriesInfo name="RFC" value="6151" />
-</reference>
-
 <reference anchor="RFC6234">
     <front>
     <title>US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)</title>
@@ -788,19 +778,11 @@
     <seriesInfo name="RFC" value="6234" />
 </reference>
 
-<reference anchor="FIPS140-2IG">
-    <front>
-    <title> Implementation Guidance for FIPS PUB 140-2 and the
-            Cryptographic Module Validation Program</title>
-    <author fullname="NIST" initials="US" surname="NIST" />
-    <date month="January" year="2015" />
-    </front>
-</reference>
 </references>
 
 <section title="BLAKE3 Implementations" anchor="b3src">
 <t>Cite Rust and C ref code, explain why not copied in the RFC, give git
-references
+references, use eref https://datatracker.ietf.org/doc/html/rfc2629#section-2.3.1.5
 </t>
 </section>
 
