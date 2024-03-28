@@ -1074,13 +1074,19 @@ hash value:
     <t> 
     In this second example, BLAKE3 in keyed hash mode processes a
     message composed of two 1024-byte chunks, the first consisting only
-    of 0xaa bytes and the second consisting only of 0xbb bytes.
+    of 0xaa bytes and the second consisting only of 0xbb bytes. 
 
     Below we show the execution trace, including compression function input
     and output values for each compression function: the 16 + 16 = 32
     compressions of the two chunks, and the compression of the root
-    parent node. 
+    parent node. We only show the message block for the first
+    compression of a chunk, as all the subsequent blocks hash the same
+    block value (respectively, all 0xaa and all 0xbb for the two
+    chunks). Likewise, we only show the counter value when it changes
+    (respectively, 0, 1, and 0 for the two chunks and for the root).
     </t>
+
+    TODO: REDUCE SIZE OF TRACE WRT ABOVE PAR
 
     <figure>
     <artwork>
@@ -1112,10 +1118,6 @@ db668896 8e557d4d 684294f4 ae36d8ae eaec1efd 5f5fc3ec d8d1abc5 10094488
 h:
 db668896 8e557d4d 684294f4 ae36d8ae eaec1efd 5f5fc3ec d8d1abc5 10094488 
 
-m:
-aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa 
-aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa 
-
 t:
 00000000 00000000
 
@@ -1132,13 +1134,6 @@ output words:
 
 h:
 68f7c3a8 8aaed76b f0decee2 d1b5993d 9564cba3 85b6c1ee baffea5b 0be671fb 
-
-m:
-aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa 
-aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa 
-
-t:
-00000000 00000000
 
 len:
 64

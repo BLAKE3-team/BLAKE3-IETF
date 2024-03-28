@@ -92,8 +92,10 @@ Table of Contents
    7.  Security Considerations . . . . . . . . . . . . . . . . . . .  14
    8.  Informative References  . . . . . . . . . . . . . . . . . . .  14
    Appendix A.  Implementation status  . . . . . . . . . . . . . . .  15
-   Appendix B.  Example of BLAKE3 Computation  . . . . . . . . . . .  15
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
+   Appendix B.  Examples of BLAKE3 Computation . . . . . . . . . . .  15
+     B.1.  Single Chunk in hash Mode . . . . . . . . . . . . . . . .  15
+     B.2.  Multiple Chunks in keyed_hash Mode  . . . . . . . . . . .  16
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  31
 
 1.  Introduction and Terminology
 
@@ -104,8 +106,6 @@ Table of Contents
    in proprietary software.  For example, the Linux kernel (from version
    5.17) uses BLAKE2 in its cryptographic pseudorandom generator, and
    the WireGuard secure tunnel protocol uses BLAKE2 for hashing and
-   keyed hashing.
-
 
 
 
@@ -113,6 +113,8 @@ Aumasson, et al.        Expires 29 September 2024               [Page 2]
 
 Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
+
+   keyed hashing.
 
    BLAKE3 was designed to be as secure as BLAKE2, yet considerably
    faster, thanks to 1) a compression function with a reduced number of
@@ -160,8 +162,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
    Applications and use cases of BLAKE3 are further discussed in
    Section 6 in [BLAKE3].
-
-
 
 
 
@@ -806,34 +806,34 @@ Appendix A.  Implementation status
    into the present document.  However, they are expected to remain
    permanently available, for the foreseeable future.
 
-Appendix B.  Example of BLAKE3 Computation
+Appendix B.  Examples of BLAKE3 Computation
 
-   TODO: Give examples of intermediate/final values for 1) the
-   compression function, and 2) for each of the modes
+   We provide execution traces for simple examples of BLAKE3 hashing.
+   More complex tests can be obtained from the reference source code.
 
-          m[16] = 00636261 00000000 00000000 00000000 00000000 00000000
-                  00000000 00000000 00000000 00000000 00000000 00000000
-                  00000000 00000000 00000000 00000000
+B.1.  Single Chunk in hash Mode
 
-   (i=0)  v[16] = 6B08E647 BB67AE85 3C6EF372 A54FF53A 510E527F 9B05688C
-                  1F83D9AB 5BE0CD19 6A09E667 BB67AE85 3C6EF372 A54FF53A
-                  510E527C 9B05688C E07C2654 5BE0CD19
+   In this first example, BLAKE3 in hash mode processes the 4-byte
+   message "IETF", padded with 60 zero bytes to form a 64-byte block.
+   Below we show the execution trace, including compression function
+   input and output values, and showing intermediate values of the 7
+   compression function rounds.
 
-   (i=1)  v[16] = 16A3242E D7B5E238 CE8CE24B 927AEDE1 A7B430D9 93A4A14E
-                  A44E7C31 41D4759B 95BF33D3 9A99C181 608A3A6B B666383E
-                  7A8DD50F BE378ED7 353D1EE6 3BB44C6B
 
-   (i=2)  v[16] = 3AE30FE3 0982A96B E88185B4 3E339B16 F24338CD 0E66D326
-                  E005ED0C D591A277 180B1F3A FCF43914 30DB62D6 4847831C
-                  7F00C58E FB847886 C544E836 524AB0E2
+ == COMPRESS ==
 
-   (i=3)  v[16] = 7A3BE783 997546C1 D45246DF EDB5F821 7F98A742 10E864E2
-                  D4AB70D0 C63CB1AB 6038DA9E 414594B0 F2C218B5 8DA0DCB7
-                  D7CD7AF5 AB4909DF 85031A52 C4EDFC98
+ h:
+ 6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19
 
-   (i=4)  v[16] = 2A8B8CB7 1ACA82B2 14045D7F CC7258ED 383CF67C E090E7F9
-                  3025D276 57D04DE4 994BACF0 F0982759 F17EE300 D48FC2D5
-                  DC854C10 523898A9 C03A0F89 47D6CD88
+ m:
+ 46544549 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+ 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+ t:
+ 00000000 00000000
+
+ len:
+ 4
 
 
 
@@ -842,35 +842,870 @@ Aumasson, et al.        Expires 29 September 2024              [Page 15]
 Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
-   (i=5)  v[16] = C4AA2DDB 111343A3 D54A700A 574A00A9 857D5A48 B1E11989
-                  6F5C52DF DD2C53A3 678E5F8E 9718D4E9 622CB684 92976076
-                  0E41A517 359DC2BE 87A87DDD 643F9CEC
+ flags:
+ 0b
 
-   (i=6)  v[16] = 3453921C D7595EE1 592E776D 3ED6A974 4D997CB3 DE9212C3
-                  35ADF5C9 9916FD65 96562E89 4EAD0792 EBFC2712 2385F5B2
-                  F34600FB D7BC20FB EB452A7B ECE1AA40
+ after round 0:
+ d7737c52 a0d29b6a d3b4f608 e20caed2 49091c17 b1abb189 961f03ba c3474f4e
+ a7590324 9c110e95 f77c59cc b47c3370 9c1aed89 b7c28f82 bab6db43 e634ca3e
 
-   (i=7)  v[16] = BE851B2D A85F6358 81E6FC3B 0BB28000 FA55A33A 87BE1FAD
-                  4119370F 1E2261AA A1318FD3 F4329816 071783C2 6E536A8D
-                  9A81A601 E7EC80F1 ACC09948 F849A584
+ after round 1:
+ 4cce55f2 9cdfa58b 297f68b4 887fd036 4e620c26 321af343 b8e634b0 72737ae9
+ 6f6ecf4a 628788fb df9428c1 a2c42d78 a51ddf7b 6cf97481 72dccb9c 1878acb8
 
-   (i=8)  v[16] = 07E5B85A 069CC164 F9DE3141 A56F4680 9E440AD2 9AB659EA
-                  3C84B971 21DBD9CF 46699F8C 765257EC AF1D998C 75E4C3B6
-                  523878DC 30715015 397FEE81 4F1FA799
+ after round 2:
+ 8e99a713 bd202a18 d70c8d18 603ba3ad f411ae76 88ff9580 03db2909 a12e939f
+ 19b81233 69787f12 d2b0c5b7 52034613 21baaea8 84e5fe6d c8c96ae8 422a96d8
 
-   (i=9)  v[16] = 435148C4 A5AA2D11 4B354173 D543BC9E BDA2591C BF1D2569
-                  4FCB3120 707ADA48 565B3FDE 32C9C916 EAF4A1AB B1018F28
-                  8078D978 68ADE4B5 9778FDA3 2863B92E
+ after round 3:
+ eeb6ec2a 22f4289a 64900193 d9f751b3 216a610d f5aadf41 ddf5584d ae312167
+ c8f40fb3 97f06701 6eee4503 4827825d 3c59d243 473585da 90d24798 c5957f9d
 
-   (i=10) v[16] = D9C994AA CFEC3AA6 700D0AB2 2C38670E AF6A1F66 1D023EF3
-                  1D9EC27D 945357A5 3E9FFEBD 969FE811 EF485E21 A632797A
-                  DEEF082E AF3D80E1 4E86829B 4DEAFD3A
+ after round 4:
+ 11876617 4a71dc87 23a5b774 185e51fa a1ed35c0 729a3348 6da19311 9716237c
+ f66bbb71 f303cf35 585dd137 e5c9c363 8b2b32ed 6add0d37 12b87a10 f96fde3e
 
-           h[8] = 8C5E8C50 E2147C32 A32BA7E1 2F45EB4E 208B4537 293AD69E
-                  4C9B994D 82596786
+ after round 5:
+ 02b010fc 345f4920 ce96e963 018a8afd c0e0faca 651d2baf 0b24a23d d1ffa8fc
+ aa7de2ee d80796c0 ff96b6bd 7cfbf53a 292b8630 8d8e1a78 31c6cb9d b471de23
 
-   BLAKE3("abc") = 50 8C 5E 8C 32 7C 14 E2 E1 A7 2B A3 4E EB 45 2F
-                   37 45 8B 20 9E D6 3A 29 4D 99 9B 4C 86 67 59 82
+ after round 6:
+ a4839e1a 064b478f bb47c942 3f4a0350 efd0bb79 61167ed0 356b01f5 b40f5364
+ ba5d3c99 adadb369 9fcea12a f08a4ddf 7ba07e35 9e94d896 e3dfca24 568e0272
+
+ output words:
+ 1edea283 abe6f4e6 24896868 cfc04e8f 9470c54c ff82a646 d6b4cbd1 e2815116
+
+ hash value:
+ 83a2de1ee6f4e6ab686889248f4ec0cf4cc5709446a682ffd1cbb4d6165181e2
+
+
+B.2.  Multiple Chunks in keyed_hash Mode
+
+   In this second example, BLAKE3 in keyed hash mode processes a message
+   composed of two 1024-byte chunks, the first consisting only of 0xaa
+   bytes and the second consisting only of 0xbb bytes.  Below we show
+   the execution trace, including compression function input and output
+   values for each compression function: the 16 + 16 = 32 compressions
+   of the two chunks, and the compression of the root parent node.
+
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 16]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ == COMPRESS ==
+
+ h:
+ 6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 01
+
+ output words:
+ db668896 8e557d4d 684294f4 ae36d8ae eaec1efd 5f5fc3ec d8d1abc5 10094488
+
+ == COMPRESS ==
+
+ h:
+ db668896 8e557d4d 684294f4 ae36d8ae eaec1efd 5f5fc3ec d8d1abc5 10094488
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 68f7c3a8 8aaed76b f0decee2 d1b5993d 9564cba3 85b6c1ee baffea5b 0be671fb
+
+ == COMPRESS ==
+
+ h:
+ 68f7c3a8 8aaed76b f0decee2 d1b5993d 9564cba3 85b6c1ee baffea5b 0be671fb
+
+ m:
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 17]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ e79aed24 3ad3caa0 199ce8a2 31155523 f9e84a64 e5bc14a9 9af2e334 9985ca87
+
+ == COMPRESS ==
+
+ h:
+ e79aed24 3ad3caa0 199ce8a2 31155523 f9e84a64 e5bc14a9 9af2e334 9985ca87
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 35e722a9 0872b994 7a05884c 2968d0cd 08e92372 bc87969c d32d20e9 a5eb0ef6
+
+ == COMPRESS ==
+
+ h:
+ 35e722a9 0872b994 7a05884c 2968d0cd 08e92372 bc87969c d32d20e9 a5eb0ef6
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 18]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 0e618a8d 4c17b3a3 bf17a81a fae109b3 435486f5 7854e7ac 4b0e41f3 1b0a773a
+
+ == COMPRESS ==
+
+ h:
+ 0e618a8d 4c17b3a3 bf17a81a fae109b3 435486f5 7854e7ac 4b0e41f3 1b0a773a
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 689e8525 38241f4c 93c85386 8b89a303 200d341e cb4e0c76 0e4a9834 4ce07f14
+
+ == COMPRESS ==
+
+ h:
+ 689e8525 38241f4c 93c85386 8b89a303 200d341e cb4e0c76 0e4a9834 4ce07f14
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 19]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ output words:
+ ae51c883 e29a64b4 573eb2c4 324a0bb3 458f4c80 312ff7f1 9e194290 65c78a4d
+
+ == COMPRESS ==
+
+ h:
+ ae51c883 e29a64b4 573eb2c4 324a0bb3 458f4c80 312ff7f1 9e194290 65c78a4d
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 082b24c1 4c09407c 9b80a3d9 ef173f4b f3f68d34 8afe0066 ed3c5f7e 83cf95d4
+
+ == COMPRESS ==
+
+ h:
+ 082b24c1 4c09407c 9b80a3d9 ef173f4b f3f68d34 8afe0066 ed3c5f7e 83cf95d4
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ fafc4be2 0bb87f3b ca34144b 1103ce02 d6cb4c49 1f20eab9 3593d1cf 3742859e
+
+ == COMPRESS ==
+
+ h:
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 20]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ fafc4be2 0bb87f3b ca34144b 1103ce02 d6cb4c49 1f20eab9 3593d1cf 3742859e
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 51b45ba4 dd1b242a 002689c1 cfcd1997 073e3f21 3fe38ccb c59e4bcc 6c91298d
+
+ == COMPRESS ==
+
+ h:
+ 51b45ba4 dd1b242a 002689c1 cfcd1997 073e3f21 3fe38ccb c59e4bcc 6c91298d
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ dc832743 8edfe4dc 2434e697 17460dde 6dbf6b54 614f9af3 ca696833 6ee12fcd
+
+ == COMPRESS ==
+
+ h:
+ dc832743 8edfe4dc 2434e697 17460dde 6dbf6b54 614f9af3 ca696833 6ee12fcd
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 21]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 86bda24a fc967396 ff8cf6db 017c4b90 ff72ef63 1bb302e4 0fe2b9cc 2a4470b7
+
+ == COMPRESS ==
+
+ h:
+ 86bda24a fc967396 ff8cf6db 017c4b90 ff72ef63 1bb302e4 0fe2b9cc 2a4470b7
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ bba75e83 28bac312 8a1565c6 66972f60 95ebb0a3 5ebf7a85 a4de1420 bbccd8ba
+
+ == COMPRESS ==
+
+ h:
+ bba75e83 28bac312 8a1565c6 66972f60 95ebb0a3 5ebf7a85 a4de1420 bbccd8ba
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 22]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ flags:
+ 00
+
+ output words:
+ 37df0dd2 5521517f 2374fbfa 3811d80b 68f109d3 abf8cbf6 209efbdc 3432507b
+
+ == COMPRESS ==
+
+ h:
+ 37df0dd2 5521517f 2374fbfa 3811d80b 68f109d3 abf8cbf6 209efbdc 3432507b
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 996b6a0c e8dbdaeb da6a97ef 4391c111 12c223ba 3c092120 289dfbaa ed3ac2a5
+
+ == COMPRESS ==
+
+ h:
+ 996b6a0c e8dbdaeb da6a97ef 4391c111 12c223ba 3c092120 289dfbaa ed3ac2a5
+
+ m:
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+ aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 02
+
+ output words:
+ c8d63b32 b1d9fecb dbf2dac7 7fba1e91 a71a614b 022d5eb6 43b88567 5fb98dbb
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 23]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ == COMPRESS ==
+
+ h:
+ 6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 01
+
+ output words:
+ 4643287b d85bed11 5487228d a44a56de 4731717c cc6838ee 197aa105 db612375
+
+ == COMPRESS ==
+
+ h:
+ 4643287b d85bed11 5487228d a44a56de 4731717c cc6838ee 197aa105 db612375
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ e5be3ee8 6b8a6388 c6f1bb2d 96c4422a 69c5e773 08f62b86 8e0ac6ef 60053eb3
+
+ == COMPRESS ==
+
+ h:
+ e5be3ee8 6b8a6388 c6f1bb2d 96c4422a 69c5e773 08f62b86 8e0ac6ef 60053eb3
+
+ m:
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 24]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ f14e85f1 7e3dd3cd 21821aea 13a60dd9 ed703026 6d162747 f486ce97 3b802292
+
+ == COMPRESS ==
+
+ h:
+ f14e85f1 7e3dd3cd 21821aea 13a60dd9 ed703026 6d162747 f486ce97 3b802292
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 434b8c2f 418e7faa 7161b184 adc28577 2952f240 a88b1cf8 7bec7d73 c051765d
+
+ == COMPRESS ==
+
+ h:
+ 434b8c2f 418e7faa 7161b184 adc28577 2952f240 a88b1cf8 7bec7d73 c051765d
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 25]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 421facc4 d3e21e47 c3a23dd3 610bd719 ecdb7a26 8c62e787 fe48f954 938aa686
+
+ == COMPRESS ==
+
+ h:
+ 421facc4 d3e21e47 c3a23dd3 610bd719 ecdb7a26 8c62e787 fe48f954 938aa686
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ d6923df3 467f1fd5 0a819a24 abec94ae 9c302aa5 327db5ff 1ba49bc0 165a5863
+
+ == COMPRESS ==
+
+ h:
+ d6923df3 467f1fd5 0a819a24 abec94ae 9c302aa5 327db5ff 1ba49bc0 165a5863
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 26]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ output words:
+ f666bec1 6fbbcaea 12a6ebd2 1739df2e 88b9ac50 1ef02104 36bc1314 f7fe8b33
+
+ == COMPRESS ==
+
+ h:
+ f666bec1 6fbbcaea 12a6ebd2 1739df2e 88b9ac50 1ef02104 36bc1314 f7fe8b33
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 967ea734 133aca4b 5f97ef2c cd0077bc acae43c3 2c84abb0 1105580a 494dc582
+
+ == COMPRESS ==
+
+ h:
+ 967ea734 133aca4b 5f97ef2c cd0077bc acae43c3 2c84abb0 1105580a 494dc582
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ e1785148 4419c2b9 94dd4c1d 77a352d6 1e2a6e08 316cea7d efe58124 eaa512b0
+
+ == COMPRESS ==
+
+ h:
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 27]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ e1785148 4419c2b9 94dd4c1d 77a352d6 1e2a6e08 316cea7d efe58124 eaa512b0
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ fb402a99 554f18e8 ffabb223 42d1c5c1 ff0241f7 13fb6f1b 23af7e2c 2ce45cb7
+
+ == COMPRESS ==
+
+ h:
+ fb402a99 554f18e8 ffabb223 42d1c5c1 ff0241f7 13fb6f1b 23af7e2c 2ce45cb7
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ c5cbd479 30417e86 e1150c46 2d3ea9be c1b8b0d1 c3968e0a a6d74d02 7571b930
+
+ == COMPRESS ==
+
+ h:
+ c5cbd479 30417e86 e1150c46 2d3ea9be c1b8b0d1 c3968e0a a6d74d02 7571b930
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 28]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ 279a13a8 69c61d6f 0a93894c be859817 9f0790fc 4c096ad4 e4398002 df9b93a5
+
+ == COMPRESS ==
+
+ h:
+ 279a13a8 69c61d6f 0a93894c be859817 9f0790fc 4c096ad4 e4398002 df9b93a5
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ a8d114db b86a7942 1e7419c1 6a452196 758a05ca b744e642 93e41248 7cc614e1
+
+ == COMPRESS ==
+
+ h:
+ a8d114db b86a7942 1e7419c1 6a452196 758a05ca b744e642 93e41248 7cc614e1
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 29]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ flags:
+ 00
+
+ output words:
+ b6e7e6bb 6d3e124f 5dedef9e bde7f593 7a0400d5 50daf53d 49377ad8 dbd6a61f
+
+ == COMPRESS ==
+
+ h:
+ b6e7e6bb 6d3e124f 5dedef9e bde7f593 7a0400d5 50daf53d 49377ad8 dbd6a61f
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 00
+
+ output words:
+ a40be2e1 a5101d8e 902ad7c3 dbac4a0f a1062d4f dbb1d38a 3ef37b7d 0a46f93e
+
+ == COMPRESS ==
+
+ h:
+ a40be2e1 a5101d8e 902ad7c3 dbac4a0f a1062d4f dbb1d38a 3ef37b7d 0a46f93e
+
+ m:
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+ bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb bbbbbbbb
+
+ t:
+ 00000000 00000001
+
+ len:
+ 64
+
+ flags:
+ 02
+
+ output words:
+ 70dc03d8 be50bb38 4a0f7bf3 db9d008b c02b11fb f2ae5f91 4c20d218 5f7db224
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 30]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+
+
+ == COMPRESS ==
+
+ h:
+ 6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19
+
+ m:
+ c8d63b32 b1d9fecb dbf2dac7 7fba1e91 a71a614b 022d5eb6 43b88567 5fb98dbb
+ 70dc03d8 be50bb38 4a0f7bf3 db9d008b c02b11fb f2ae5f91 4c20d218 5f7db224
+
+ t:
+ 00000000 00000000
+
+ len:
+ 64
+
+ flags:
+ 0c
+
+ output words:
+ 38289de7 d3cc5a91 bab01bb2 f8edb576 d7d308dc 5bb60d8d 370f3f71 46c358ec
+
+ hash value:
+ e79d2838915accd3b21bb0ba76b5edf8dc08d3d78d0db65b713f0f37ec58c346
+
 
 Authors' Addresses
 
@@ -887,17 +1722,6 @@ Authors' Addresses
    Samuel Neves
 
 
-
-
-
-
-
-
-Aumasson, et al.        Expires 29 September 2024              [Page 16]
-
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
-
-
    Jack O'Connor
    SpaceX
    356 167th Ave NE
@@ -905,6 +1729,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
    United States of America
    Email: oconnor663@gmail.com
    URI:   https://jacko.io
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 31]
+
+Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
    Zooko Wilcox-O'Hearn
@@ -949,4 +1780,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 17]
+
+
+
+
+
+
+
+
+
+Aumasson, et al.        Expires 29 September 2024              [Page 32]
