@@ -14,7 +14,7 @@ Expires: 29 September 2024
 
 
                       The BLAKE3 Hashing Framework
-                            draft-blake3-00
+                        draft-aumasson-blake3-00
 
 Abstract
 
@@ -378,7 +378,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
       function call, see Section 2.5.
 
    (Artwork only available as (unknown type): No external link
-   available, see draft-blake3-00.html for artwork.)
+   available, see draft-aumasson-blake3-00.html for artwork.)
 
 3.2.  Quarter-Round Function G
 

@@ -9,11 +9,11 @@
 <?rfc compact="yes" ?>
 <?rfc subcompact="no" ?>
 
-<rfc category="info" docName="draft-blake3-00" ipr="trust200902" submissionType="IETF">
-<front>
 <!--
     TODO: update date
 -->
+<rfc category="info" docName="draft-aumasson-blake3-00" ipr="trust200902" submissionType="IETF">
+<front>
     <title>The BLAKE3 Hashing Framework</title>
 
     <author fullname="Jean-Philippe Aumasson"
