@@ -34,15 +34,16 @@
 
     <author fullname="Samuel Neves"
             initials="S" surname="Neves">
-        <organization></organization>
+        <organization>Centre for Informatics and Systems of the University of Coimbra</organization>
         <address>
             <postal>
-                <street></street>
-                <street></street>
-                <region></region> <code></code>
-                <country></country>
+                <street>Polo II</street>
+                <street>Pinhal de Marrocos</street>
+                <region>Coimbra</region>
+                <code>3030-290</code>
+                <country>Portugal</country>
             </postal>
-            <email></email>
+            <email>sneves@dei.uc.pt</email>
             <uri></uri>
         </address>
     </author>
@@ -76,7 +77,7 @@
         </address>
     </author>
 
-    <date month="March" day="28" year="2024" />
+    <date month="April" day="1" year="2024" />
 
     <area>General</area>
 
