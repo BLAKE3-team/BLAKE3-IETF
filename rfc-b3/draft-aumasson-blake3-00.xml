@@ -62,22 +62,23 @@
         </address>
     </author>
 
-    <author fullname="Zooko Wilcox-O'Hearn"
-            initials="Z" surname="Wilcox-O'Hearn">
-        <organization>Zcash</organization>
-        <address>
+    <author fullname="Zooko Wilcox"
+        initials="Z" surname="Wilcox">
+        <organization>Electric Coin Co</organization>
+            <address>
             <postal>
-                <street></street>
-                <street></street>
-                <region></region> <code></code>
-                <country></country>
+                <street>1750 30th St.</street>
+                <street>apt #217</street>
+                <region>Colorado</region>
+                <code>80301</code>
+                <country>USA</country>
             </postal>
-            <email></email>
+            <email>zookog@gmail.com</email>
             <uri></uri>
         </address>
     </author>
 
-    <date month="April" day="1" year="2024" />
+    <date month="April" day="30" year="2024" />
 
     <area>General</area>
 
