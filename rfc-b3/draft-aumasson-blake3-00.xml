@@ -34,12 +34,12 @@
 
     <author fullname="Samuel Neves"
             initials="S" surname="Neves">
-        <organization>Centre for Informatics and Systems of the University of Coimbra</organization>
+        <organization>University of Coimbra</organization>
         <address>
             <postal>
                 <street>Polo II</street>
                 <street>Pinhal de Marrocos</street>
-                <region>Coimbra</region>
+                <city>Coimbra</city>
                 <code>3030-290</code>
                 <country>Portugal</country>
             </postal>

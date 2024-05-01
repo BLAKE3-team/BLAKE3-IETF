@@ -5,12 +5,12 @@
 Internet Engineering Task Force                       J-P. Aumasson, Ed.
 Internet-Draft                                                 Taurus SA
 Intended status: Informational                                  S. Neves
-Expires: 29 September 2024                                              
+Expires: 1 November 2024                           University of Coimbra
                                                              J. O'Connor
                                                                   SpaceX
-                                                       Z. Wilcox-O'Hearn
-                                                                   Zcash
-                                                           28 March 2024
+                                                               Z. Wilcox
+                                                        Electric Coin Co
+                                                           30 April 2024
 
 
                       The BLAKE3 Hashing Framework
@@ -40,7 +40,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 29 September 2024.
+   This Internet-Draft will expire on 1 November 2024.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 1]
+Aumasson, et al.         Expires 1 November 2024                [Page 1]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    Please review these documents carefully, as they describe your rights
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 2]
+Aumasson, et al.         Expires 1 November 2024                [Page 2]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    keyed hashing.
@@ -165,9 +165,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 3]
+Aumasson, et al.         Expires 1 November 2024                [Page 3]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
 1.2.  Hashing Structure
@@ -221,9 +221,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 4]
+Aumasson, et al.         Expires 1 November 2024                [Page 4]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    x >>> n =  (x >> n) ^ (x << (w - n)).  Rotate "x" right by "n".
@@ -277,9 +277,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 5]
+Aumasson, et al.         Expires 1 November 2024                [Page 5]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
 2.4.  Message Word Permutation
@@ -333,9 +333,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 6]
+Aumasson, et al.         Expires 1 November 2024                [Page 6]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL (0x40):  These
@@ -389,9 +389,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 7]
+Aumasson, et al.         Expires 1 November 2024                [Page 7]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
            FUNCTION G( v[0..15], a, b, c, d, x, y )
@@ -445,9 +445,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 8]
+Aumasson, et al.         Expires 1 November 2024                [Page 8]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
        FUNCTION BLAKE3_COMPRESS( h[0..7], m[0..15], t, len, flags )
@@ -501,9 +501,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024               [Page 9]
+Aumasson, et al.         Expires 1 November 2024                [Page 9]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
 4.  Tree Mode of Operation
@@ -557,9 +557,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 10]
+Aumasson, et al.         Expires 1 November 2024               [Page 10]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
       Table 3), and the last block of each chunk sets the CHUNK_END
@@ -613,9 +613,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 11]
+Aumasson, et al.         Expires 1 November 2024               [Page 11]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    *  Left subtrees are full, that is, each left subtree is a complete
@@ -669,9 +669,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 12]
+Aumasson, et al.         Expires 1 November 2024               [Page 12]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    To implement incremental hashing, an implementation must maintain an
@@ -725,9 +725,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 13]
+Aumasson, et al.         Expires 1 November 2024               [Page 13]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    BLAKE3 does not domain separate outputs of different lengths: shorter
@@ -781,9 +781,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 14]
+Aumasson, et al.         Expires 1 November 2024               [Page 14]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    [RFC9106]  Biryukov, A-B., Dinu, D-D., Khovratovich, D-K., and S-J.
@@ -837,9 +837,9 @@ B.1.  Single Chunk in hash Mode
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 15]
+Aumasson, et al.         Expires 1 November 2024               [Page 15]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  flags:
@@ -893,9 +893,9 @@ B.2.  Multiple Chunks in keyed_hash Mode
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 16]
+Aumasson, et al.         Expires 1 November 2024               [Page 16]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
    all 0xaa and all 0xbb for the two chunks).  Likewise, we only show
@@ -949,9 +949,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 17]
+Aumasson, et al.         Expires 1 November 2024               [Page 17]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  e79aed24 3ad3caa0 199ce8a2 31155523 f9e84a64 e5bc14a9 9af2e334 9985ca87
@@ -1005,9 +1005,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 18]
+Aumasson, et al.         Expires 1 November 2024               [Page 18]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  fafc4be2 0bb87f3b ca34144b 1103ce02 d6cb4c49 1f20eab9 3593d1cf 3742859e
@@ -1061,9 +1061,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 19]
+Aumasson, et al.         Expires 1 November 2024               [Page 19]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  996b6a0c e8dbdaeb da6a97ef 4391c111 12c223ba 3c092120 289dfbaa ed3ac2a5
@@ -1117,9 +1117,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 20]
+Aumasson, et al.         Expires 1 November 2024               [Page 20]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  h:
@@ -1173,9 +1173,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 21]
+Aumasson, et al.         Expires 1 November 2024               [Page 21]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  h:
@@ -1229,9 +1229,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 22]
+Aumasson, et al.         Expires 1 November 2024               [Page 22]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
  h:
@@ -1277,7 +1277,6 @@ Authors' Addresses
    URI:   https://taurushq.com
 
 
-   Samuel Neves
 
 
 
@@ -1285,9 +1284,19 @@ Authors' Addresses
 
 
 
-Aumasson, et al.        Expires 29 September 2024              [Page 23]
+
+Aumasson, et al.         Expires 1 November 2024               [Page 23]
 
-Internet-Draft        The BLAKE3 Hashing Framework            March 2024
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
+   Samuel Neves
+   University of Coimbra
+   Polo II
+   Pinhal de Marrocos
+   3030-290 Coimbra
+   Portugal
+   Email: sneves@dei.uc.pt
 
 
    Jack O'Connor
@@ -1299,8 +1308,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
    URI:   https://jacko.io
 
 
-   Zooko Wilcox-O'Hearn
-   Zcash
+   Zooko Wilcox
+   Electric Coin Co
+   1750 30th St.
+   apt #217
+   Colorado 80301
+   United States of America
+   Email: zookog@gmail.com
 
 
 
@@ -1327,18 +1341,4 @@ Internet-Draft        The BLAKE3 Hashing Framework            March 2024
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Aumasson, et al.        Expires 29 September 2024              [Page 24]
+Aumasson, et al.         Expires 1 November 2024               [Page 24]
