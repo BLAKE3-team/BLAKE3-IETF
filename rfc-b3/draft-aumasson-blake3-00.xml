@@ -193,7 +193,7 @@
     BLAKE3 processes input data according to a binary tree structure. It
     first splits its input into 1024-byte chunks, processing each chunk
     independently of the other chunks, using a compression function
-    iterating over each of the 16 consecutive 16-byte blocks of a chunk.
+    iterating over each of the 16 consecutive 64-byte blocks of a chunk.
     </t>
     
     <t>

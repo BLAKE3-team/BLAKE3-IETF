@@ -178,7 +178,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    BLAKE3 processes input data according to a binary tree structure.  It
    first splits its input into 1024-byte chunks, processing each chunk
    independently of the other chunks, using a compression function
-   iterating over each of the 16 consecutive 16-byte blocks of a chunk.
+   iterating over each of the 16 consecutive 64-byte blocks of a chunk.
 
    From the hash of each chunk, a binary hash tree is built to compute
    the root of the tree, which determines the BLAKE3 output.
