@@ -362,58 +362,43 @@
 
     <t>
         The compression function of BLAKE3 uses a set of flags to
-        control various aspects of its operation. These flags are
-        defined as follows: 
+        domain-separate different types of inputs. These flags are
+        defined as follows:
     </t>
     <t>
     <list style="hanging">
         <t hangText="CHUNK_START (0x01):">
-        This flag must set for the first block of each chunk, and only
-        for this block.
+        Set for the first block of each chunk.
         </t>
 
         <t hangText="CHUNK_END (0x02):">
-        This flag signals the end of the chunk.  It must be set for the
-        compression function of the last block within a chunk, and only
-        for this block. If a chunk contains only one block, that block
-        must set both CHUNK_START and CHUNK_END.
+        Set for the last block of each chunk. If a chunk contains only one
+        block, then both CHUNK_START and CHUNK_END are set.
         </t>
 
         <t hangText="PARENT (0x04):">
-        In the binary tree structure, this flag must be set on parent
-        nodes (non-chunk nodes), and only for parent nodes. It signals
-        that the node combines the 32-byte outputs of nodes in the tree
-        (chunks of parents). A parent node always processes exactly 64
-        bytes, that is, the concatenation of the 32-byte output values
-        from its two child nodes.
+        Set for parent nodes (non-chunk nodes).
         </t>
 
         <t hangText="ROOT (0x08):">
-        This flag must be set to the final compression in the tree,
-        representing the root, and only for such nodes. The root node
-        may be a parent node, but may also be the last compression of a
-        chunk processing leaf (if there is a single chunk). In this
-        latter case, only the last compression function sets the ROOT
-        flag. In the case of a parent node, there is a single
-        compression function, which sets the ROOT flag.
-        </t>
-        
-        <t hangText="KEYED_HASH (0x10):">
-        This flag must be set to all compression functions when using BLAKE3
-        in the keyed_hash mode, and only in this mode. In this mode, a
-        256-bit key must be used as initial chaining value instead of
-        IV.
+        Set for the last compression of the root node. If the root is a
+        parent node, this is in addition to PARENT. If the root is a
+        chunk (the only chunk), this is in addition to CHUNK_END.
         </t>
 
-        <t hangText="DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL
-        (0x40):">
-        These flags are used in BLAKE3's derive_key mode, where the
-        context string is first hashed by a (non-keyed) BLAKE3
-        instance must set the DERIVE_KEY_CONTEXT to all compression
-        functions; the 32-byte output is then used as the key of a
-        keyed BLAKE3 instance hashing the key material, which must set 
-        DERIVE_KEY_MATERIAL (but not DERIVE_KEY_CONTEXT) to all
-        compression functions.</t>
+        <t hangText="KEYED_HASH (0x10):">
+        Set for all compressions in the keyed_hash mode.
+        </t>
+
+        <t hangText="DERIVE_KEY_CONTEXT (0x20):">
+        Set for all compressions of the context string in the derive_key
+        mode.
+        </t>
+
+        <t hangText="DERIVE_KEY_MATERIAL (0x40):">
+        Set for all compressions of the input (key material) in the
+        derive_key mode.
+        </t>
     </list>
     </t>
 

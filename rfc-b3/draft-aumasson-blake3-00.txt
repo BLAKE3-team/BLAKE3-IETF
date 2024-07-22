@@ -298,37 +298,37 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 2.5.  Compression Function Flags
 
-   The compression function of BLAKE3 uses a set of flags to control
-   various aspects of its operation.  These flags are defined as
+   The compression function of BLAKE3 uses a set of flags to domain-
+   separate different types of inputs.  These flags are defined as
    follows:
 
-   CHUNK_START (0x01):  This flag must set for the first block of each
-      chunk, and only for this block.
+   CHUNK_START (0x01):  Set for the first block of each chunk.
 
-   CHUNK_END (0x02):  This flag signals the end of the chunk.  It must
-      be set for the compression function of the last block within a
-      chunk, and only for this block.  If a chunk contains only one
-      block, that block must set both CHUNK_START and CHUNK_END.
+   CHUNK_END (0x02):  Set for the last block of each chunk.  If a chunk
+      contains only one block, then both CHUNK_START and CHUNK_END are
+      set.
 
-   PARENT (0x04):  In the binary tree structure, this flag must be set
-      on parent nodes (non-chunk nodes), and only for parent nodes.  It
-      signals that the node combines the 32-byte outputs of nodes in the
-      tree (chunks of parents).  A parent node always processes exactly
-      64 bytes, that is, the concatenation of the 32-byte output values
-      from its two child nodes.
+   PARENT (0x04):  Set for parent nodes (non-chunk nodes).
 
-   ROOT (0x08):  This flag must be set to the final compression in the
-      tree, representing the root, and only for such nodes.  The root
-      node may be a parent node, but may also be the last compression of
-      a chunk processing leaf (if there is a single chunk).  In this
-      latter case, only the last compression function sets the ROOT
-      flag.  In the case of a parent node, there is a single compression
-      function, which sets the ROOT flag.
+   ROOT (0x08):  Set for the last compression of the root node.  If the
+      root is a parent node, this is in addition to PARENT.  If the root
+      is a chunk (the only chunk), this is in addition to CHUNK_END.
 
-   KEYED_HASH (0x10):  This flag must be set to all compression
-      functions when using BLAKE3 in the keyed_hash mode, and only in
-      this mode.  In this mode, a 256-bit key must be used as initial
-      chaining value instead of IV.
+   KEYED_HASH (0x10):  Set for all compressions in the keyed_hash mode.
+
+   DERIVE_KEY_CONTEXT (0x20):  Set for all compressions of the context
+      string in the derive_key mode.
+
+   DERIVE_KEY_MATERIAL (0x40):  Set for all compressions of the input
+      (key material) in the derive_key mode.
+
+   If two or more flags are set, then all their respective bits shall
+   appear in the flags compression function input.  This combination may
+   be implemented as an XOR or integer addition between the flags.  For
+   example, if CHUNK_START and KEYED_HASH are set, then the flags input
+   word will be the 32-bit word 0x00000011, where 0x11 = 0x10 + 0x01 =
+   0x10 ^ 0x01.
+
 
 
 
@@ -337,21 +337,6 @@ Aumasson, et al.         Expires 1 November 2024                [Page 6]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
-
-   DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL (0x40):  These
-      flags are used in BLAKE3's derive_key mode, where the context
-      string is first hashed by a (non-keyed) BLAKE3 instance must set
-      the DERIVE_KEY_CONTEXT to all compression functions; the 32-byte
-      output is then used as the key of a keyed BLAKE3 instance hashing
-      the key material, which must set DERIVE_KEY_MATERIAL (but not
-      DERIVE_KEY_CONTEXT) to all compression functions.
-
-   If two or more flags are set, then all their respective bits shall
-   appear in the flags compression function input.  This combination may
-   be implemented as an XOR or integer addition between the flags.  For
-   example, if CHUNK_START and KEYED_HASH are set, then the flags input
-   word will be the 32-bit word 0x00000011, where 0x11 = 0x10 + 0x01 =
-   0x10 ^ 0x01.
 
 3.  Compression Function
 
@@ -385,6 +370,21 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    The G function mixes two input words x and y into four words indexed
    by a, b, c, and d in the working array v[0..15].  The full modified
    array is returned.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
