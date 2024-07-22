@@ -384,8 +384,8 @@
         nodes (non-chunk nodes), and only for parent nodes. It signals
         that the node combines the 32-byte outputs of nodes in the tree
         (chunks of parents). A parent node always processes exactly 64
-        bytes, that is, the concatenation of two 32-byte output values
-        from a child node.
+        bytes, that is, the concatenation of the 32-byte output values
+        from its two child nodes.
         </t>
 
         <t hangText="ROOT (0x08):">
