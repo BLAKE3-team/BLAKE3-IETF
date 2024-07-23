@@ -442,9 +442,8 @@
         </t>
         <t hangText="        len">
         32-bit word encoding the number of application data bytes in
-        the block, at least 1 and at most 64. That is, len is equal to
-        64 minus the number of padding bytes, which are set to
-        zero (0x00).
+        the block, at most 64. That is, len is equal to 64 minus the
+        number of padding bytes, which are set to zero (0x00).
         </t>
         <t hangText="      flags">
         32-bit word encoding the flags defined for a given compression

@@ -356,8 +356,8 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
       higher-order 32-bit word is t[1].
 
    len  32-bit word encoding the number of application data bytes in the
-      block, at least 1 and at most 64.  That is, len is equal to 64
-      minus the number of padding bytes, which are set to zero (0x00).
+      block, at most 64.  That is, len is equal to 64 minus the number
+      of padding bytes, which are set to zero (0x00).
 
    flags  32-bit word encoding the flags defined for a given compression
       function call, see Section 2.5.
