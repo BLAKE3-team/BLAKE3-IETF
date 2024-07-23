@@ -544,9 +544,9 @@
     </figure>
 
     <t>
-    When processing chunks or computing parent nodes, the output is
+    When processing chunks and parent nodes below the root, the output is
     always truncated to the first 8 words v[0..7]. When computing the
-    output value, all the 16 words may be used (see <xref target="xof"
+    output value, all 16 words may be used (see <xref target="xof"
     />).
     </t>
 
@@ -564,7 +564,7 @@
     formed for a given number of chunks in <xref target="treepro" />.
     Finally, <xref target="xof" /> describes how BLAKE3 can produce an
     output of arbitrary length without committing to a length when
-    starting processing data.
+    processing starts.
     </t>
 
 <section anchor="key_words" title="The 8-word Key">
@@ -586,24 +586,21 @@
 
     <t>
         BLAKE3's chunk processing divides the BLAKE3 input into
-        1024-byte chunks, which will be leaves of a binary tree. The
-        last chunk will be of less than 1024 bytes if the message byte
-        length is not a multiple of 1024.
+        1024-byte chunks, which will be leaves of a binary tree. If
+        the input byte length is not a multiple of 1024, the last
+        chunk is short. The last chunk is empty if and only if the
+        input is empty.
     </t>
     <t>
-        Chunks are divided into 64-byte blocks. The last block of
-        the last chunk may be shorter, but not empty, unless the entire
-        input is empty. If necessary, the last block is padded with
-        zeros to be 64-byte.
+        Chunks are divided into 64-byte blocks. If the input byte
+        length is not a multiple of 64, the last block is short. The
+        last block is empty if and only if the input is empty. Short
+        or empty blocks are padded with zeros to be 64 bytes.
     </t>
     <t> 
         Each chunk is processed by iterating the compression function
-        (1024/64 = 16 times for a full 1024-byte chunk) to process
+        (1024/64 = 16 times for a full 1024-byte chunk) to process the
         64-byte blocks, each parsed as 16 32-bit little-endian words.
-        The output of each compression function is h[0..7], the 8-word
-        truncated output, which is the input of the next compression
-        function (and the output of the chunk processing for the last
-        compression function call).
     </t>
     <t>
     Compression function input arguments are set as follows: 
@@ -622,9 +619,9 @@
         chunk, and so on.
         </t>
         <t hangText="        len">
-        The block length is set to 64 for all blocks except the last
-        block of a chunk, where it is the number of data bytes (thus
-        excluding padding zeros.)
+        The block length is the number of data bytes in the block,
+        which is 64 for all blocks except possibly the last block of
+        the last chunk.
         </t>
         <t hangText="       flag">
         The first block of each chunk sets the CHUNK_START flag (cf.
@@ -672,7 +669,7 @@
         PARENT flag). Parent nodes never set CHUNK_START and CHUNK_END.
         The mode flags (KEYED_HASH, DERIVE_KEY_CONTEXT,
         DERIVE_KEY_MATERIAL) must be set for a parent node when
-        operating if the respective modes. 
+        operating in the respective modes. 
         </t>
     </list>
     </t>
