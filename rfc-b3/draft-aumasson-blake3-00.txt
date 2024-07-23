@@ -80,21 +80,22 @@ Table of Contents
      3.2.  Quarter-Round Function G  . . . . . . . . . . . . . . . .   7
      3.3.  Compression Function Processing . . . . . . . . . . . . .   8
    4.  Tree Mode of Operation  . . . . . . . . . . . . . . . . . . .  10
-     4.1.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .  10
-     4.2.  Binary Tree Processing  . . . . . . . . . . . . . . . . .  11
-     4.3.  Extendable Output . . . . . . . . . . . . . . . . . . . .  12
+     4.1.  The 8-word Key  . . . . . . . . . . . . . . . . . . . . .  10
+     4.2.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .  10
+     4.3.  Binary Tree Processing  . . . . . . . . . . . . . . . . .  11
+     4.4.  Extendable Output . . . . . . . . . . . . . . . . . . . .  12
    5.  Implementation Considerations . . . . . . . . . . . . . . . .  12
-     5.1.  Incremental Hashing Implementation  . . . . . . . . . . .  12
+     5.1.  Incremental Hashing Implementation  . . . . . . . . . . .  13
      5.2.  Compression Function Implementation . . . . . . . . . . .  13
      5.3.  Multi-Thread Implementation . . . . . . . . . . . . . . .  13
-     5.4.  Extendable Output Implementation  . . . . . . . . . . . .  13
+     5.4.  Extendable Output Implementation  . . . . . . . . . . . .  14
    6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  14
    7.  Security Considerations . . . . . . . . . . . . . . . . . . .  14
    8.  Informative References  . . . . . . . . . . . . . . . . . . .  14
    Appendix A.  Implementation status  . . . . . . . . . . . . . . .  15
    Appendix B.  Examples of BLAKE3 Computation . . . . . . . . . . .  15
      B.1.  Single Chunk in hash Mode . . . . . . . . . . . . . . . .  15
-     B.2.  Multiple Chunks in keyed_hash Mode  . . . . . . . . . . .  16
+     B.2.  Multiple Chunks in keyed_hash Mode  . . . . . . . . . . .  17
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  23
 
 1.  Introduction and Terminology
@@ -105,7 +106,6 @@ Table of Contents
    [BLAKE2][RFC7693].  BLAKE2 is widely used in open-source software and
    in proprietary software.  For example, the Linux kernel (from version
    5.17) uses BLAKE2 in its cryptographic pseudorandom generator, and
-   the WireGuard secure tunnel protocol uses BLAKE2 for hashing and
 
 
 
@@ -114,6 +114,7 @@ Aumasson, et al.         Expires 1 November 2024                [Page 2]
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
+   the WireGuard secure tunnel protocol uses BLAKE2 for hashing and
    keyed hashing.
 
    BLAKE3 was designed to be as secure as BLAKE2, yet considerably
@@ -160,8 +161,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    the keyed hash mode can thus be used as a deterministic random bit
    generator (DRBG).  By default, each mode returns a 32-byte output.
 
-   Applications and use cases of BLAKE3 are further discussed in
-   Section 6 in [BLAKE3].
+
 
 
 
@@ -169,6 +169,9 @@ Aumasson, et al.         Expires 1 November 2024                [Page 3]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+   Applications and use cases of BLAKE3 are further discussed in
+   Section 6 in [BLAKE3].
 
 1.2.  Hashing Structure
 
@@ -216,15 +219,14 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
    x >> n =  floor(x / 2**n).  Logical shift "x" right by "n" bits.
 
-   x << n =  (x * 2**n) mod (2**w).  Logical shift "x" left by "n".
-
-
 
 
 Aumasson, et al.         Expires 1 November 2024                [Page 4]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+   x << n =  (x * 2**n) mod (2**w).  Logical shift "x" left by "n".
 
    x >>> n =  (x >> n) ^ (x << (w - n)).  Rotate "x" right by "n".
 
@@ -269,8 +271,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    This IV is also used as part of the compression function, where the
    first four words, IV[0..3] are copied into the 16-word local initial
    state, at positions v[8..11].
-
-
 
 
 
@@ -491,7 +491,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
    When processing chunks or computing parent nodes, the output is
    always truncated to the first 8 words v[0..7].  When computing the
-   output value, all the 16 words may be used (see Section 4.3).
+   output value, all the 16 words may be used (see Section 4.4).
 
 
 
@@ -509,13 +509,24 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 4.  Tree Mode of Operation
 
    The following describes BLAKE3's tree mode of operation, first
-   specifying the processing of input data as chunks in Section 4.1,
+   specifying the processing of input data as chunks in Section 4.2,
    then describing how the binary hash tree structure is formed for a
-   given number of chunks in Section 4.2.  Finally, Section 4.3
+   given number of chunks in Section 4.3.  Finally, Section 4.4
    describes how BLAKE3 can produce an output of arbitrary length
    without committing to a length when starting processing data.
 
-4.1.  Chunk Processing
+4.1.  The 8-word Key
+
+   Each hashing mode uses an 8-word "key" for some of the inputs h
+   below.  In the unkeyed hashing mode (hash), the key is defined to be
+   IV.  In the keyed hashing mode (keyed_hash), the caller provides a
+   32-byte key parameter, and that parameter is split into 8 little-
+   endian words.  The key derivation mode (derive_key) operates in two
+   phases: In the first phase (DERIVE_KEY_CONTEXT), the key is defined
+   to be IV.  In the second phase (DERIVE_KEY_MATERIAL), the key is the
+   truncated output of the first phase.
+
+4.2.  Chunk Processing
 
    BLAKE3's chunk processing divides the BLAKE3 input into 1024-byte
    chunks, which will be leaves of a binary tree.  The last chunk will
@@ -536,24 +547,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
    Compression function input arguments are set as follows:
 
-   h[0..7]  For the first block of a chunk, this is set either to the
-      key, or to the IV if no key is defined.  For subsequent block, h
-      is set to the output of the previous block's compression.
+   h[0..7]  For the first block of a chunk, this is the 8-word key
+      defined above.  For subsequent blocks, this is the truncated
+      output of the compression of the previous block.
 
    m[0..15]  This is the block processed by the compression function.
 
    t[0..1]  The counter t for each block is the chunk index, that is, 0
-      for all blocks in the first chunk, 1 for all blocks in the second
-      chunk, and so on.
-
-   len  The block length is set to 64 for all blocks except the last
-      block of a chunk, where it is the number of data bytes (thus
-      excluding padding zeros.)
-
-   flag  The first block of each chunk sets the CHUNK_START flag (cf.
-
-
-
 
 
 
@@ -562,6 +562,14 @@ Aumasson, et al.         Expires 1 November 2024               [Page 10]
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
+      for all blocks in the first chunk, 1 for all blocks in the second
+      chunk, and so on.
+
+   len  The block length is set to 64 for all blocks except the last
+      block of a chunk, where it is the number of data bytes (thus
+      excluding padding zeros.)
+
+   flag  The first block of each chunk sets the CHUNK_START flag (cf.
       Table 3), and the last block of each chunk sets the CHUNK_END
       flag.  If a chunk contains only one block, that block sets both
       CHUNK_START and CHUNK_END.  If a chunk is the root of its tree,
@@ -573,7 +581,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    CHUNK_START and KEYED_HASH set.  If a chunk is only 64-byte, then its
    only compression will in addition have the CHUNK_END flag set.
 
-4.2.  Binary Tree Processing
+4.3.  Binary Tree Processing
 
    From the chunk processing of input data, BLAKE3 computes its output
    following a binary hash tree (a.k.a.  Merkle tree) structure.  Parent
@@ -585,8 +593,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    The compression function used by parent nodes thus uses the following
    arguments:
 
-   h[0..7]  This is set either to the key (in keyed_hash mode), and to
-      the IV otherwise.
+   h[0..7]  This is the 8-word key defined above.
 
    m[0..15]  This is the 64-byte block consisting in the concatenated
       32-byte output of the two child nodes.
@@ -602,13 +609,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
       DERIVE_KEY_MATERIAL) must be set for a parent node when operating
       if the respective modes.
 
-   When the number of chunks is not a power of 2 (that is, when the
-   binary tree is not complete), the tree structure is created according
-   to the following rules:
-
-   *  If there is only one chunk, that chunk is the root node and only
-      node of the tree.  Otherwise, the chunks are assembled with parent
-      nodes, each parent node having exactly two children.
 
 
 
@@ -617,6 +617,14 @@ Aumasson, et al.         Expires 1 November 2024               [Page 11]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+   When the number of chunks is not a power of 2 (that is, when the
+   binary tree is not complete), the tree structure is created according
+   to the following rules:
+
+   *  If there is only one chunk, that chunk is the root node and only
+      node of the tree.  Otherwise, the chunks are assembled with parent
+      nodes, each parent node having exactly two children.
 
    *  Left subtrees are full, that is, each left subtree is a complete
       binary tree, with all its chunks at the same depth, and a number
@@ -633,10 +641,10 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    the BLAKE3 output is the 32-byte output of the root node (that is,
    the final values of v[0..7] in the compression function).  Output of
    up to 64 bytes is formed by taking as many bytes as required from the
-   final v[0..15] of the root's compression function.  See Section 4.3
+   final v[0..15] of the root's compression function.  See Section 4.4
    for the case of output values larger than 64 bytes.
 
-4.3.  Extendable Output
+4.4.  Extendable Output
 
    BLAKE3, in any of its three modes, can produce outputs of any byte
    length up to 2**64 - 1.  This is done by repeating the root
@@ -651,16 +659,8 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    these, as a starting point to implementers, covering the most salient
    points.
 
-5.1.  Incremental Hashing Implementation
 
-   BLAKE3 may be implemented using an application programming interface
-   (API) allowing for incremental hashing, that is, where the caller
-   provides input data via multiple repeated calls to an "update"
-   function, as opposed to a single call providing all the input data.
-   Such an API typically consists of an "init" function call to
-   initialize an internal context state, followed by a series of
-   "update" function calls, eventually followed by a "finalize" function
-   call that that returns the output.
+
 
 
 
@@ -673,6 +673,17 @@ Aumasson, et al.         Expires 1 November 2024               [Page 12]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+5.1.  Incremental Hashing Implementation
+
+   BLAKE3 may be implemented using an application programming interface
+   (API) allowing for incremental hashing, that is, where the caller
+   provides input data via multiple repeated calls to an "update"
+   function, as opposed to a single call providing all the input data.
+   Such an API typically consists of an "init" function call to
+   initialize an internal context state, followed by a series of
+   "update" function calls, eventually followed by a "finalize" function
+   call that that returns the output.
 
    To implement incremental hashing, an implementation must maintain an
    internal state, which must keep track of the state of the current
@@ -711,6 +722,14 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    input data length.  Section 5.2 in [BLAKE3] provides further
    guidelines to implementers.
 
+
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 13]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
 5.4.  Extendable Output Implementation
 
    Because the repeated root compressions differ only in the value of t,
@@ -719,16 +738,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    For example, computing the third 64-byte block of output (that is,
    the last 64 bytes of a 192-byte output) does not require the
    computation of the first 128 bytes.
-
-
-
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 13]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
 
    BLAKE3 does not domain separate outputs of different lengths: shorter
    outputs are prefixes of longer ones.  The caller can extract as much
@@ -770,6 +779,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
               Requirement Levels", RFC 2119, BCP 14, March 1997,
               <https://www.rfc-editor.org/rfc/rfc2119>.
 
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 14]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
    [RFC6234]  Eastlake, D. and T. Hansen, "US Secure Hash Algorithms
               (SHA and SHA-based HMAC and HKDF)", RFC 6234, May 2011,
               <https://www.rfc-editor.org/rfc/rfc6234>.
@@ -778,13 +794,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
               Cryptographic Hash and Message Authentication Code (MAC)",
               RFC 7693, November 2015,
               <https://www.rfc-editor.org/rfc/rfc7693>.
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 14]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
 
    [RFC9106]  Biryukov, A-B., Dinu, D-D., Khovratovich, D-K., and S-J.
               Josefsson, "Argon2 Memory-Hard Function for Password
@@ -825,6 +834,14 @@ B.1.  Single Chunk in hash Mode
  h:
  6a09e667 bb67ae85 3c6ef372 a54ff53a 510e527f 9b05688c 1f83d9ab 5be0cd19
 
+
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 15]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
  m:
  46544549 00000000 00000000 00000000 00000000 00000000 00000000 00000000
  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
@@ -833,14 +850,6 @@ B.1.  Single Chunk in hash Mode
  00000000 00000000
 
  4
-
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 15]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
 
  flags:
  0b
@@ -880,6 +889,15 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
  83a2de1ee6f4e6ab686889248f4ec0cf4cc5709446a682ffd1cbb4d6165181e2
 
 
+
+
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 16]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
 B.2.  Multiple Chunks in keyed_hash Mode
 
    In this second example, BLAKE3 in keyed hash mode processes a message
@@ -890,14 +908,6 @@ B.2.  Multiple Chunks in keyed_hash Mode
    of the two chunks, and the compression of the root parent node.  We
    only show the message block for the first compression of a chunk, as
    all the subsequent blocks hash the same block value (respectively,
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 16]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
-
    all 0xaa and all 0xbb for the two chunks).  Likewise, we only show
    the counter value and flags when they changes (the counter is, 0, 1,
    and 0 respectively for the two chunks and for the root).  The len
@@ -937,6 +947,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
  == COMPRESS: CHUNK  0, BLOCK  2 ==
 
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 17]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
  h:
  68f7c3a8 8aaed76b f0decee2 d1b5993d 9564cba3 85b6c1ee baffea5b 0be671fb
 
@@ -946,14 +963,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
  == COMPRESS: CHUNK  0, BLOCK  3 ==
 
  h:
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 17]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
-
  e79aed24 3ad3caa0 199ce8a2 31155523 f9e84a64 e5bc14a9 9af2e334 9985ca87
 
  compress output:
@@ -993,6 +1002,14 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
  == COMPRESS: CHUNK  0, BLOCK  8 ==
 
+
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 18]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
  h:
  082b24c1 4c09407c 9b80a3d9 ef173f4b f3f68d34 8afe0066 ed3c5f7e 83cf95d4
 
@@ -1002,14 +1019,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
  == COMPRESS: CHUNK  0, BLOCK  9 ==
 
  h:
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 18]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
-
  fafc4be2 0bb87f3b ca34144b 1103ce02 d6cb4c49 1f20eab9 3593d1cf 3742859e
 
  compress output:
@@ -1049,6 +1058,14 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
  == COMPRESS: CHUNK  0, BLOCK 14 ==
 
+
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 19]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
  h:
  37df0dd2 5521517f 2374fbfa 3811d80b 68f109d3 abf8cbf6 209efbdc 3432507b
 
@@ -1058,14 +1075,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
  == COMPRESS: CHUNK  0, BLOCK 15 ==
 
  h:
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 19]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
-
  996b6a0c e8dbdaeb da6a97ef 4391c111 12c223ba 3c092120 289dfbaa ed3ac2a5
 
  flags:
@@ -1106,6 +1115,13 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
  == COMPRESS: CHUNK  1, BLOCK  2 ==
 
+
+
+Aumasson, et al.         Expires 1 November 2024               [Page 20]
+
+Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
  h:
  e5be3ee8 6b8a6388 c6f1bb2d 96c4422a 69c5e773 08f62b86 8e0ac6ef 60053eb3
 
@@ -1113,14 +1129,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
  f14e85f1 7e3dd3cd 21821aea 13a60dd9 ed703026 6d162747 f486ce97 3b802292
 
  == COMPRESS: CHUNK  1, BLOCK  3 ==
-
-
-
-
-Aumasson, et al.         Expires 1 November 2024               [Page 20]
-
-Internet-Draft        The BLAKE3 Hashing Framework            April 2024
-
 
  h:
  f14e85f1 7e3dd3cd 21821aea 13a60dd9 ed703026 6d162747 f486ce97 3b802292
@@ -1162,14 +1170,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
  == COMPRESS: CHUNK  1, BLOCK  8 ==
 
- h:
- 967ea734 133aca4b 5f97ef2c cd0077bc acae43c3 2c84abb0 1105580a 494dc582
-
- compress output:
- e1785148 4419c2b9 94dd4c1d 77a352d6 1e2a6e08 316cea7d efe58124 eaa512b0
-
- == COMPRESS: CHUNK  1, BLOCK  9 ==
-
 
 
 
@@ -1177,6 +1177,14 @@ Aumasson, et al.         Expires 1 November 2024               [Page 21]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+ h:
+ 967ea734 133aca4b 5f97ef2c cd0077bc acae43c3 2c84abb0 1105580a 494dc582
+
+ compress output:
+ e1785148 4419c2b9 94dd4c1d 77a352d6 1e2a6e08 316cea7d efe58124 eaa512b0
+
+ == COMPRESS: CHUNK  1, BLOCK  9 ==
 
  h:
  e1785148 4419c2b9 94dd4c1d 77a352d6 1e2a6e08 316cea7d efe58124 eaa512b0
@@ -1218,14 +1226,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
  == COMPRESS: CHUNK  1, BLOCK 14 ==
 
- h:
- b6e7e6bb 6d3e124f 5dedef9e bde7f593 7a0400d5 50daf53d 49377ad8 dbd6a61f
-
- compress output:
- a40be2e1 a5101d8e 902ad7c3 dbac4a0f a1062d4f dbb1d38a 3ef37b7d 0a46f93e
-
- == COMPRESS: CHUNK  1, BLOCK 15 ==
-
 
 
 
@@ -1233,6 +1233,14 @@ Aumasson, et al.         Expires 1 November 2024               [Page 22]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+ h:
+ b6e7e6bb 6d3e124f 5dedef9e bde7f593 7a0400d5 50daf53d 49377ad8 dbd6a61f
+
+ compress output:
+ a40be2e1 a5101d8e 902ad7c3 dbac4a0f a1062d4f dbb1d38a 3ef37b7d 0a46f93e
+
+ == COMPRESS: CHUNK  1, BLOCK 15 ==
 
  h:
  a40be2e1 a5101d8e 902ad7c3 dbac4a0f a1062d4f dbb1d38a 3ef37b7d 0a46f93e
@@ -1274,20 +1282,15 @@ Authors' Addresses
    CH-1201 Geneva
    Switzerland
    Email: jeanphilippe.aumasson@gmail.com
-   URI:   https://taurushq.com
-
-
-
-
-
-
-
 
 
 
 Aumasson, et al.         Expires 1 November 2024               [Page 23]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
+
+
+   URI:   https://taurushq.com
 
 
    Samuel Neves
@@ -1315,9 +1318,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    Colorado 80301
    United States of America
    Email: zookog@gmail.com
-
-
-
 
 
 

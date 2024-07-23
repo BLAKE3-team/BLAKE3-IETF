@@ -567,6 +567,21 @@
     starting processing data.
     </t>
 
+<section anchor="key_words" title="The 8-word Key">
+
+    <t>
+        Each hashing mode uses an 8-word "key" for some of the inputs h below.
+        In the unkeyed hashing mode (hash), the key is defined to be IV.
+        In the keyed hashing mode (keyed_hash), the caller provides a 32-byte
+        key parameter, and that parameter is split into 8 little-endian words.
+        The key derivation mode (derive_key) operates in two phases: In the
+        first phase (DERIVE_KEY_CONTEXT), the key is defined to be IV. In the
+        second phase (DERIVE_KEY_MATERIAL), the key is the truncated output of
+        the first phase.
+    </t>
+
+</section>
+
 <section anchor="chunkspro" title="Chunk Processing">
 
     <t>
@@ -594,9 +609,9 @@
     Compression function input arguments are set as follows: 
     <list style="hanging">
         <t hangText="    h[0..7]">
-        For the first block of a chunk, this is set either to the key,
-        or to the IV if no key is defined. For subsequent block, h is
-        set to the output of the previous block's compression.
+        For the first block of a chunk, this is the 8-word key defined
+        above. For subsequent blocks, this is the truncated output of the
+        compression of the previous block.
         </t>
         <t hangText="   m[0..15]">
         This is the block processed by the compression function.
@@ -646,8 +661,7 @@
     following arguments:
     <list style="hanging">
         <t hangText="    h[0..7]">
-        This is set either to the key (in keyed_hash mode), and to the
-        IV otherwise. 
+        This is the 8-word key defined above.
         </t>
         <t hangText="   m[0..15]">
         This is the 64-byte block consisting in the concatenated 32-byte
