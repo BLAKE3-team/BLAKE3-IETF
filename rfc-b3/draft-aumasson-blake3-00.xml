@@ -628,20 +628,13 @@
         </t>
         <t hangText="       flag">
         The first block of each chunk sets the CHUNK_START flag (cf.
-        Table 3), and the last block of each chunk sets the CHUNK_END
+        <xref target="flags" />), and the last block of each chunk sets the CHUNK_END
         flag. If a chunk contains only one block, that block sets both
         CHUNK_START and CHUNK_END. If a chunk is the root of its tree,
         the last block of that chunk also sets the ROOT flag. Multiple
         flags may thus be set.
         </t>
     </list>
-    </t>
-    <t>
-    Flags are set as specified in <xref target="flags" />.  More than
-    one flag may be set, for example the first compression of the first
-    chunk will have CHUNK_START and KEYED_HASH set. If a chunk is only
-    64-byte, then its only compression will in addition have the
-    CHUNK_END flag set. 
     </t>
 
 </section>
