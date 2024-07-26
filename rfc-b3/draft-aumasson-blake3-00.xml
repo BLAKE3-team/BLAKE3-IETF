@@ -193,7 +193,7 @@
     BLAKE3 processes input data according to a binary tree structure. It
     first splits its input into 1024-byte chunks, processing each chunk
     independently of the other chunks, using a compression function
-    iterating over each of the 16 consecutive 16-byte blocks of a chunk.
+    iterating over each of the 16 consecutive 64-byte blocks of a chunk.
     </t>
     
     <t>
@@ -362,58 +362,43 @@
 
     <t>
         The compression function of BLAKE3 uses a set of flags to
-        control various aspects of its operation. These flags are
-        defined as follows: 
+        domain-separate different types of inputs. These flags are
+        defined as follows:
     </t>
     <t>
     <list style="hanging">
         <t hangText="CHUNK_START (0x01):">
-        This flag must set for the first block of each chunk, and only
-        for this block.
+        Set for the first block of each chunk.
         </t>
 
         <t hangText="CHUNK_END (0x02):">
-        This flag signals the end of the chunk.  It must be set for the
-        compression function of the last block within a chunk, and only
-        for this block. If a chunk contains only one block, that block
-        must set both CHUNK_START and CHUNK_END.
+        Set for the last block of each chunk. If a chunk contains only one
+        block, then both CHUNK_START and CHUNK_END are set.
         </t>
 
         <t hangText="PARENT (0x04):">
-        In the binary tree structure, this flag must be set on parent
-        nodes (non-chunk nodes), and only for parent nodes. It signals
-        that the node combines the 32-byte outputs of nodes in the tree
-        (chunks of parents). A parent node always processes exactly 64
-        bytes, that is, the concatenation of two 32-byte output values
-        from a child node.
+        Set for parent nodes (non-chunk nodes).
         </t>
 
         <t hangText="ROOT (0x08):">
-        This flag must be set to the final compression in the tree,
-        representing the root, and only for such nodes. The root node
-        may be a parent node, but may also be the last compression of a
-        chunk processing leaf (if there is a single chunk). In this
-        latter case, only the last compression function sets the ROOT
-        flag. In the case of a parent node, there is a single
-        compression function, which sets the ROOT flag.
-        </t>
-        
-        <t hangText="KEYED_HASH (0x10):">
-        This flag must be set to all compression functions when using BLAKE3
-        in the keyed_hash mode, and only in this mode. In this mode, a
-        256-bit key must be used as initial chaining value instead of
-        IV.
+        Set for the last compression of the root node. If the root is a
+        parent node, this is in addition to PARENT. If the root is a
+        chunk (the only chunk), this is in addition to CHUNK_END.
         </t>
 
-        <t hangText="DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL
-        (0x40):">
-        These flags are used in BLAKE3's derive_key mode, where the
-        context string is first hashed by a (non-keyed) BLAKE3
-        instance must set the DERIVE_KEY_CONTEXT to all compression
-        functions; the 32-byte output is then used as the key of a
-        keyed BLAKE3 instance hashing the key material, which must set 
-        DERIVE_KEY_MATERIAL (but not DERIVE_KEY_CONTEXT) to all
-        compression functions.</t>
+        <t hangText="KEYED_HASH (0x10):">
+        Set for all compressions in the keyed_hash mode.
+        </t>
+
+        <t hangText="DERIVE_KEY_CONTEXT (0x20):">
+        Set for all compressions of the context string in the derive_key
+        mode.
+        </t>
+
+        <t hangText="DERIVE_KEY_MATERIAL (0x40):">
+        Set for all compressions of the input (key material) in the
+        derive_key mode.
+        </t>
     </list>
     </t>
 
@@ -457,9 +442,8 @@
         </t>
         <t hangText="        len">
         32-bit word encoding the number of application data bytes in
-        the block, at least 1 and at most 64. That is, len is equal to
-        64 minus the number of padding bytes, which are set to
-        zero (0x00).
+        the block, at most 64. That is, len is equal to 64 minus the
+        number of padding bytes, which are set to zero (0x00).
         </t>
         <t hangText="      flags">
         32-bit word encoding the flags defined for a given compression
@@ -560,9 +544,9 @@
     </figure>
 
     <t>
-    When processing chunks or computing parent nodes, the output is
+    When processing chunks and parent nodes below the root, the output is
     always truncated to the first 8 words v[0..7]. When computing the
-    output value, all the 16 words may be used (see <xref target="xof"
+    output value, all 16 words may be used (see <xref target="xof"
     />).
     </t>
 
@@ -580,39 +564,51 @@
     formed for a given number of chunks in <xref target="treepro" />.
     Finally, <xref target="xof" /> describes how BLAKE3 can produce an
     output of arbitrary length without committing to a length when
-    starting processing data.
+    processing starts.
     </t>
+
+<section anchor="key_words" title="The 8-word Key">
+
+    <t>
+        Each hashing mode uses an 8-word "key" for some of the inputs h below.
+        In the unkeyed hashing mode (hash), the key is defined to be IV.
+        In the keyed hashing mode (keyed_hash), the caller provides a 32-byte
+        key parameter, and that parameter is split into 8 little-endian words.
+        The key derivation mode (derive_key) operates in two phases: In the
+        first phase (DERIVE_KEY_CONTEXT), the key is defined to be IV. In the
+        second phase (DERIVE_KEY_MATERIAL), the key is the truncated output of
+        the first phase.
+    </t>
+
+</section>
 
 <section anchor="chunkspro" title="Chunk Processing">
 
     <t>
         BLAKE3's chunk processing divides the BLAKE3 input into
-        1024-byte chunks, which will be leaves of a binary tree. The
-        last chunk will be of less than 1024 bytes if the message byte
-        length is not a multiple of 1024.
+        1024-byte chunks, which will be leaves of a binary tree. If
+        the input byte length is not a multiple of 1024, the last
+        chunk is short. The last chunk is empty if and only if the
+        input is empty.
     </t>
     <t>
-        Chunks are divided into 64-byte blocks. The last block of
-        the last chunk may be shorter, but not empty, unless the entire
-        input is empty. If necessary, the last block is padded with
-        zeros to be 64-byte.
+        Chunks are divided into 64-byte blocks. If the input byte
+        length is not a multiple of 64, the last block is short. The
+        last block is empty if and only if the input is empty. Short
+        or empty blocks are padded with zeros to be 64 bytes.
     </t>
     <t> 
         Each chunk is processed by iterating the compression function
-        (1024/64 = 16 times for a full 1024-byte chunk) to process
+        (1024/64 = 16 times for a full 1024-byte chunk) to process the
         64-byte blocks, each parsed as 16 32-bit little-endian words.
-        The output of each compression function is h[0..7], the 8-word
-        truncated output, which is the input of the next compression
-        function (and the output of the chunk processing for the last
-        compression function call).
     </t>
     <t>
     Compression function input arguments are set as follows: 
     <list style="hanging">
         <t hangText="    h[0..7]">
-        For the first block of a chunk, this is set either to the key,
-        or to the IV if no key is defined. For subsequent block, h is
-        set to the output of the previous block's compression.
+        For the first block of a chunk, this is the 8-word key defined
+        above. For subsequent blocks, this is the truncated output of the
+        compression of the previous block.
         </t>
         <t hangText="   m[0..15]">
         This is the block processed by the compression function.
@@ -623,26 +619,19 @@
         chunk, and so on.
         </t>
         <t hangText="        len">
-        The block length is set to 64 for all blocks except the last
-        block of a chunk, where it is the number of data bytes (thus
-        excluding padding zeros.)
+        The block length is the number of data bytes in the block,
+        which is 64 for all blocks except possibly the last block of
+        the last chunk.
         </t>
         <t hangText="       flag">
         The first block of each chunk sets the CHUNK_START flag (cf.
-        Table 3), and the last block of each chunk sets the CHUNK_END
+        <xref target="flags" />), and the last block of each chunk sets the CHUNK_END
         flag. If a chunk contains only one block, that block sets both
         CHUNK_START and CHUNK_END. If a chunk is the root of its tree,
         the last block of that chunk also sets the ROOT flag. Multiple
         flags may thus be set.
         </t>
     </list>
-    </t>
-    <t>
-    Flags are set as specified in <xref target="flags" />.  More than
-    one flag may be set, for example the first compression of the first
-    chunk will have CHUNK_START and KEYED_HASH set. If a chunk is only
-    64-byte, then its only compression will in addition have the
-    CHUNK_END flag set. 
     </t>
 
 </section>
@@ -662,8 +651,7 @@
     following arguments:
     <list style="hanging">
         <t hangText="    h[0..7]">
-        This is set either to the key (in keyed_hash mode), and to the
-        IV otherwise. 
+        This is the 8-word key defined above.
         </t>
         <t hangText="   m[0..15]">
         This is the 64-byte block consisting in the concatenated 32-byte
@@ -681,7 +669,7 @@
         PARENT flag). Parent nodes never set CHUNK_START and CHUNK_END.
         The mode flags (KEYED_HASH, DERIVE_KEY_CONTEXT,
         DERIVE_KEY_MATERIAL) must be set for a parent node when
-        operating if the respective modes. 
+        operating in the respective modes. 
         </t>
     </list>
     </t>

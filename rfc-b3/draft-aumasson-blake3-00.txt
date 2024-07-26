@@ -80,9 +80,10 @@ Table of Contents
      3.2.  Quarter-Round Function G  . . . . . . . . . . . . . . . .   7
      3.3.  Compression Function Processing . . . . . . . . . . . . .   8
    4.  Tree Mode of Operation  . . . . . . . . . . . . . . . . . . .  10
-     4.1.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .  10
-     4.2.  Binary Tree Processing  . . . . . . . . . . . . . . . . .  11
-     4.3.  Extendable Output . . . . . . . . . . . . . . . . . . . .  12
+     4.1.  The 8-word Key  . . . . . . . . . . . . . . . . . . . . .  10
+     4.2.  Chunk Processing  . . . . . . . . . . . . . . . . . . . .  10
+     4.3.  Binary Tree Processing  . . . . . . . . . . . . . . . . .  11
+     4.4.  Extendable Output . . . . . . . . . . . . . . . . . . . .  12
    5.  Implementation Considerations . . . . . . . . . . . . . . . .  12
      5.1.  Incremental Hashing Implementation  . . . . . . . . . . .  12
      5.2.  Compression Function Implementation . . . . . . . . . . .  13
@@ -105,7 +106,6 @@ Table of Contents
    [BLAKE2][RFC7693].  BLAKE2 is widely used in open-source software and
    in proprietary software.  For example, the Linux kernel (from version
    5.17) uses BLAKE2 in its cryptographic pseudorandom generator, and
-   the WireGuard secure tunnel protocol uses BLAKE2 for hashing and
 
 
 
@@ -114,6 +114,7 @@ Aumasson, et al.         Expires 1 November 2024                [Page 2]
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
+   the WireGuard secure tunnel protocol uses BLAKE2 for hashing and
    keyed hashing.
 
    BLAKE3 was designed to be as secure as BLAKE2, yet considerably
@@ -160,8 +161,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    the keyed hash mode can thus be used as a deterministic random bit
    generator (DRBG).  By default, each mode returns a 32-byte output.
 
-   Applications and use cases of BLAKE3 are further discussed in
-   Section 6 in [BLAKE3].
+
 
 
 
@@ -169,6 +169,9 @@ Aumasson, et al.         Expires 1 November 2024                [Page 3]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+   Applications and use cases of BLAKE3 are further discussed in
+   Section 6 in [BLAKE3].
 
 1.2.  Hashing Structure
 
@@ -178,7 +181,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    BLAKE3 processes input data according to a binary tree structure.  It
    first splits its input into 1024-byte chunks, processing each chunk
    independently of the other chunks, using a compression function
-   iterating over each of the 16 consecutive 16-byte blocks of a chunk.
+   iterating over each of the 16 consecutive 64-byte blocks of a chunk.
 
    From the hash of each chunk, a binary hash tree is built to compute
    the root of the tree, which determines the BLAKE3 output.
@@ -216,15 +219,14 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
    x >> n =  floor(x / 2**n).  Logical shift "x" right by "n" bits.
 
-   x << n =  (x * 2**n) mod (2**w).  Logical shift "x" left by "n".
-
-
 
 
 Aumasson, et al.         Expires 1 November 2024                [Page 4]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
+
+   x << n =  (x * 2**n) mod (2**w).  Logical shift "x" left by "n".
 
    x >>> n =  (x >> n) ^ (x << (w - n)).  Rotate "x" right by "n".
 
@@ -275,8 +277,6 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
 
-
-
 Aumasson, et al.         Expires 1 November 2024                [Page 5]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
@@ -298,37 +298,37 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 2.5.  Compression Function Flags
 
-   The compression function of BLAKE3 uses a set of flags to control
-   various aspects of its operation.  These flags are defined as
+   The compression function of BLAKE3 uses a set of flags to domain-
+   separate different types of inputs.  These flags are defined as
    follows:
 
-   CHUNK_START (0x01):  This flag must set for the first block of each
-      chunk, and only for this block.
+   CHUNK_START (0x01):  Set for the first block of each chunk.
 
-   CHUNK_END (0x02):  This flag signals the end of the chunk.  It must
-      be set for the compression function of the last block within a
-      chunk, and only for this block.  If a chunk contains only one
-      block, that block must set both CHUNK_START and CHUNK_END.
+   CHUNK_END (0x02):  Set for the last block of each chunk.  If a chunk
+      contains only one block, then both CHUNK_START and CHUNK_END are
+      set.
 
-   PARENT (0x04):  In the binary tree structure, this flag must be set
-      on parent nodes (non-chunk nodes), and only for parent nodes.  It
-      signals that the node combines the 32-byte outputs of nodes in the
-      tree (chunks of parents).  A parent node always processes exactly
-      64 bytes, that is, the concatenation of two 32-byte output values
-      from a child node.
+   PARENT (0x04):  Set for parent nodes (non-chunk nodes).
 
-   ROOT (0x08):  This flag must be set to the final compression in the
-      tree, representing the root, and only for such nodes.  The root
-      node may be a parent node, but may also be the last compression of
-      a chunk processing leaf (if there is a single chunk).  In this
-      latter case, only the last compression function sets the ROOT
-      flag.  In the case of a parent node, there is a single compression
-      function, which sets the ROOT flag.
+   ROOT (0x08):  Set for the last compression of the root node.  If the
+      root is a parent node, this is in addition to PARENT.  If the root
+      is a chunk (the only chunk), this is in addition to CHUNK_END.
 
-   KEYED_HASH (0x10):  This flag must be set to all compression
-      functions when using BLAKE3 in the keyed_hash mode, and only in
-      this mode.  In this mode, a 256-bit key must be used as initial
-      chaining value instead of IV.
+   KEYED_HASH (0x10):  Set for all compressions in the keyed_hash mode.
+
+   DERIVE_KEY_CONTEXT (0x20):  Set for all compressions of the context
+      string in the derive_key mode.
+
+   DERIVE_KEY_MATERIAL (0x40):  Set for all compressions of the input
+      (key material) in the derive_key mode.
+
+   If two or more flags are set, then all their respective bits shall
+   appear in the flags compression function input.  This combination may
+   be implemented as an XOR or integer addition between the flags.  For
+   example, if CHUNK_START and KEYED_HASH are set, then the flags input
+   word will be the 32-bit word 0x00000011, where 0x11 = 0x10 + 0x01 =
+   0x10 ^ 0x01.
+
 
 
 
@@ -337,21 +337,6 @@ Aumasson, et al.         Expires 1 November 2024                [Page 6]
 
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
-
-   DERIVE_KEY_CONTEXT (0x20) and DERIVE_KEY_MATERIAL (0x40):  These
-      flags are used in BLAKE3's derive_key mode, where the context
-      string is first hashed by a (non-keyed) BLAKE3 instance must set
-      the DERIVE_KEY_CONTEXT to all compression functions; the 32-byte
-      output is then used as the key of a keyed BLAKE3 instance hashing
-      the key material, which must set DERIVE_KEY_MATERIAL (but not
-      DERIVE_KEY_CONTEXT) to all compression functions.
-
-   If two or more flags are set, then all their respective bits shall
-   appear in the flags compression function input.  This combination may
-   be implemented as an XOR or integer addition between the flags.  For
-   example, if CHUNK_START and KEYED_HASH are set, then the flags input
-   word will be the 32-bit word 0x00000011, where 0x11 = 0x10 + 0x01 =
-   0x10 ^ 0x01.
 
 3.  Compression Function
 
@@ -371,8 +356,8 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
       higher-order 32-bit word is t[1].
 
    len  32-bit word encoding the number of application data bytes in the
-      block, at least 1 and at most 64.  That is, len is equal to 64
-      minus the number of padding bytes, which are set to zero (0x00).
+      block, at most 64.  That is, len is equal to 64 minus the number
+      of padding bytes, which are set to zero (0x00).
 
    flags  32-bit word encoding the flags defined for a given compression
       function call, see Section 2.5.
@@ -385,6 +370,21 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    The G function mixes two input words x and y into four words indexed
    by a, b, c, and d in the working array v[0..15].  The full modified
    array is returned.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -489,9 +489,9 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
        END FUNCTION.
 
 
-   When processing chunks or computing parent nodes, the output is
+   When processing chunks and parent nodes below the root, the output is
    always truncated to the first 8 words v[0..7].  When computing the
-   output value, all the 16 words may be used (see Section 4.3).
+   output value, all 16 words may be used (see Section 4.4).
 
 
 
@@ -509,50 +509,50 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 4.  Tree Mode of Operation
 
    The following describes BLAKE3's tree mode of operation, first
-   specifying the processing of input data as chunks in Section 4.1,
+   specifying the processing of input data as chunks in Section 4.2,
    then describing how the binary hash tree structure is formed for a
-   given number of chunks in Section 4.2.  Finally, Section 4.3
+   given number of chunks in Section 4.3.  Finally, Section 4.4
    describes how BLAKE3 can produce an output of arbitrary length
-   without committing to a length when starting processing data.
+   without committing to a length when processing starts.
 
-4.1.  Chunk Processing
+4.1.  The 8-word Key
+
+   Each hashing mode uses an 8-word "key" for some of the inputs h
+   below.  In the unkeyed hashing mode (hash), the key is defined to be
+   IV.  In the keyed hashing mode (keyed_hash), the caller provides a
+   32-byte key parameter, and that parameter is split into 8 little-
+   endian words.  The key derivation mode (derive_key) operates in two
+   phases: In the first phase (DERIVE_KEY_CONTEXT), the key is defined
+   to be IV.  In the second phase (DERIVE_KEY_MATERIAL), the key is the
+   truncated output of the first phase.
+
+4.2.  Chunk Processing
 
    BLAKE3's chunk processing divides the BLAKE3 input into 1024-byte
-   chunks, which will be leaves of a binary tree.  The last chunk will
-   be of less than 1024 bytes if the message byte length is not a
-   multiple of 1024.
+   chunks, which will be leaves of a binary tree.  If the input byte
+   length is not a multiple of 1024, the last chunk is short.  The last
+   chunk is empty if and only if the input is empty.
 
-   Chunks are divided into 64-byte blocks.  The last block of the last
-   chunk may be shorter, but not empty, unless the entire input is
-   empty.  If necessary, the last block is padded with zeros to be
-   64-byte.
+   Chunks are divided into 64-byte blocks.  If the input byte length is
+   not a multiple of 64, the last block is short.  The last block is
+   empty if and only if the input is empty.  Short or empty blocks are
+   padded with zeros to be 64 bytes.
 
    Each chunk is processed by iterating the compression function
-   (1024/64 = 16 times for a full 1024-byte chunk) to process 64-byte
-   blocks, each parsed as 16 32-bit little-endian words.  The output of
-   each compression function is h[0..7], the 8-word truncated output,
-   which is the input of the next compression function (and the output
-   of the chunk processing for the last compression function call).
+   (1024/64 = 16 times for a full 1024-byte chunk) to process the
+   64-byte blocks, each parsed as 16 32-bit little-endian words.
 
    Compression function input arguments are set as follows:
 
-   h[0..7]  For the first block of a chunk, this is set either to the
-      key, or to the IV if no key is defined.  For subsequent block, h
-      is set to the output of the previous block's compression.
+   h[0..7]  For the first block of a chunk, this is the 8-word key
+      defined above.  For subsequent blocks, this is the truncated
+      output of the compression of the previous block.
 
    m[0..15]  This is the block processed by the compression function.
 
    t[0..1]  The counter t for each block is the chunk index, that is, 0
       for all blocks in the first chunk, 1 for all blocks in the second
       chunk, and so on.
-
-   len  The block length is set to 64 for all blocks except the last
-      block of a chunk, where it is the number of data bytes (thus
-      excluding padding zeros.)
-
-   flag  The first block of each chunk sets the CHUNK_START flag (cf.
-
-
 
 
 
@@ -562,18 +562,18 @@ Aumasson, et al.         Expires 1 November 2024               [Page 10]
 Internet-Draft        The BLAKE3 Hashing Framework            April 2024
 
 
-      Table 3), and the last block of each chunk sets the CHUNK_END
+   len  The block length is the number of data bytes in the block, which
+      is 64 for all blocks except possibly the last block of the last
+      chunk.
+
+   flag  The first block of each chunk sets the CHUNK_START flag (cf.
+      Section 2.5), and the last block of each chunk sets the CHUNK_END
       flag.  If a chunk contains only one block, that block sets both
       CHUNK_START and CHUNK_END.  If a chunk is the root of its tree,
       the last block of that chunk also sets the ROOT flag.  Multiple
       flags may thus be set.
 
-   Flags are set as specified in Section 2.5.  More than one flag may be
-   set, for example the first compression of the first chunk will have
-   CHUNK_START and KEYED_HASH set.  If a chunk is only 64-byte, then its
-   only compression will in addition have the CHUNK_END flag set.
-
-4.2.  Binary Tree Processing
+4.3.  Binary Tree Processing
 
    From the chunk processing of input data, BLAKE3 computes its output
    following a binary hash tree (a.k.a.  Merkle tree) structure.  Parent
@@ -585,8 +585,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    The compression function used by parent nodes thus uses the following
    arguments:
 
-   h[0..7]  This is set either to the key (in keyed_hash mode), and to
-      the IV otherwise.
+   h[0..7]  This is the 8-word key defined above.
 
    m[0..15]  This is the 64-byte block consisting in the concatenated
       32-byte output of the two child nodes.
@@ -600,7 +599,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
       the PARENT flag).  Parent nodes never set CHUNK_START and
       CHUNK_END.  The mode flags (KEYED_HASH, DERIVE_KEY_CONTEXT,
       DERIVE_KEY_MATERIAL) must be set for a parent node when operating
-      if the respective modes.
+      in the respective modes.
 
    When the number of chunks is not a power of 2 (that is, when the
    binary tree is not complete), the tree structure is created according
@@ -609,6 +608,7 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    *  If there is only one chunk, that chunk is the root node and only
       node of the tree.  Otherwise, the chunks are assembled with parent
       nodes, each parent node having exactly two children.
+
 
 
 
@@ -633,10 +633,10 @@ Internet-Draft        The BLAKE3 Hashing Framework            April 2024
    the BLAKE3 output is the 32-byte output of the root node (that is,
    the final values of v[0..7] in the compression function).  Output of
    up to 64 bytes is formed by taking as many bytes as required from the
-   final v[0..15] of the root's compression function.  See Section 4.3
+   final v[0..15] of the root's compression function.  See Section 4.4
    for the case of output values larger than 64 bytes.
 
-4.3.  Extendable Output
+4.4.  Extendable Output
 
    BLAKE3, in any of its three modes, can produce outputs of any byte
    length up to 2**64 - 1.  This is done by repeating the root
